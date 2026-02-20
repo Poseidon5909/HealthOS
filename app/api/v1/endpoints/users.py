@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.models.user import User
 from app.schemas.user import UserCreate, UserResponse
-
+from app.core.security import hash_password
 router = APIRouter()
 
 
@@ -17,7 +17,7 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
     new_user = User(
         name=user.name,
         email=user.email,
-        password_hash=user.password  # TEMPORARY — will hash in Day 3
+        password_hash=hash_password(user.password)  
     )
 
     db.add(new_user)
