@@ -28,7 +28,7 @@ class NutritionService:
     if gender == "male":
       bmr = (10 * weight) + (6.25 * height) - (5 * age) + 5
     elif gender == "female":
-      "bmr = (10 * weight)" + (6.25 * height) - (5 * age) - 161
+      bmr = (10 * weight) + (6.25 * height) - (5 * age) - 161
     else:
       raise HTTPException(status_code=400, detail="Invalid gender")
     
@@ -52,13 +52,13 @@ class NutritionService:
     calories = round(calories)
 
     # ---- Macros ----
-    protien_grams = round(weight * 2)
+    protein_grams = round(weight * 2)
     fat_grams = round(weight * 0.8)
 
-    protein_calories = protien_grams * 4
-    fat_caloreis = fat_grams * 9
+    protein_calories = protein_grams * 4
+    fat_calories = fat_grams * 9
 
-    remaining_calories = calories - (protein_calories - fat_caloreis)
+    remaining_calories = calories - (protein_calories + fat_calories)
 
     carb_grams = round(remaining_calories / 4)
 
@@ -76,8 +76,8 @@ class NutritionService:
 
     return {
       "total_calories": calories,
-      "protein_grams": protien_grams,
+      "protein_grams": protein_grams,
       "fat_grams": fat_grams,
-      "carbs_grams": carb_grams,
+      "carb_grams": carb_grams,
       "water_ml": water_ml
     }

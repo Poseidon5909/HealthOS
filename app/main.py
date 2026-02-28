@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from app.core.config import settings
 from app.api.router import api_router
 from app.models import user_profile
-
+from app.models import daily_target
 
 app = FastAPI(title=settings.APP_NAME)
 
