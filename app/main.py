@@ -8,6 +8,7 @@ from app.models import food_log
 from app.models import exercise
 from app.models import workout_log
 from app.models import water_log
+from app.models import weight_log
 
 
 app = FastAPI(title=settings.APP_NAME)

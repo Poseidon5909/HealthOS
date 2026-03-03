@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.api.v1.endpoints import health, users, auth, profile, nutrition, daily_target, food, food_log, workout, hydration
+from app.api.v1.endpoints import health, users, auth, profile, nutrition, daily_target, food, food_log, workout, hydration, progress
 
 api_router = APIRouter()
 
@@ -13,3 +13,4 @@ api_router.include_router(food.router, prefix="/food", tags=["Food"])
 api_router.include_router(food_log.router, prefix="/food-log", tags=["FoodLog"])
 api_router.include_router(workout.router, prefix="/workouts", tags=["Workouts"])
 api_router.include_router(hydration.router, prefix="/hydration", tags=["Hydration"])
+api_router.include_router(progress.router, prefix="/progress", tags=["Progress"])
