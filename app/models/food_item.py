@@ -10,7 +10,7 @@ class FoodItem(Base):
   name = Column(String(255), index=True, nullable=False)
 
   calories_per_100g = Column(Float, nullable=False)
-  protien_per_100g = Column(Float, nullable=False)
+  protein_per_100g = Column(Float, nullable=False)
   fat_per_100g = Column(Float, nullable=False)
   carbs_per_100g = Column(Float, nullable=False)
   fiber_per_100g = Column(Float, nullable=False)

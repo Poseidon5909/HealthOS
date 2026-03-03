@@ -15,6 +15,12 @@ class FoodService:
       {"name": "Banana", "calories_per_100g": 89, "protein_per_100g": 1.1, "fat_per_100g": 0.3, "carbs_per_100g": 23, "fiber_per_100g": 2.6},
       {"name": "Milk", "calories_per_100g": 52, "protein_per_100g": 3.4, "fat_per_100g": 1, "carbs_per_100g": 5, "fiber_per_100g": 0},
     ]
+    
+    for food_data in foods:
+      food_item = FoodItem(**food_data)
+      db.add(food_item)
+    
+    db.commit()
   
   @staticmethod
   def calculate_portion(food: FoodItem, grams: float):

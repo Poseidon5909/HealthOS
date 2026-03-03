@@ -4,9 +4,9 @@ from sqlalchemy.orm import relationship
 from app.core.database import Base
 
 class FoodLog(Base):
-  __tablename__ = "food-_logs"
+  __tablename__ = "food_logs"
 
-  id = Column(Integer,ForeignKey("user.id"), nullable=False)
+  id = Column(Integer, primary_key=True, index=True)
 
   user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
   food_id = Column(Integer, ForeignKey("food_items.id"), nullable=False)
@@ -14,7 +14,7 @@ class FoodLog(Base):
   quantity_grams = Column(Float, nullable=False)
 
   calculated_calories = Column(Float, nullable=False)
-  calculated_protien = Column(Float, nullable=False)
+  calculated_protein = Column(Float, nullable=False)
   calculated_fat = Column(Float, nullable=False)
   calculated_carbs = Column(Float, nullable=False)
 

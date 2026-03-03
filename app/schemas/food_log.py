@@ -9,7 +9,7 @@ class FoodLogResponse(BaseModel):
   id: int
   food_id: int
   quantity_grams: float
-  calculated_calorie: float
+  calculated_calories: float
   calculated_protein: float
   calculated_fat: float
   calculated_carbs: float
