@@ -1,11 +1,13 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from datetime import date, timedelta
+from fastapi import HTTPException, status
 from app.models.weight_log import WeightLog
 from app.models.food_log import FoodLog
 from app.models.workout_log import WorkoutLog
 from app.models.water_log import WaterLog
 from app.models.daily_target import DailyTarget
+from typing import Optional
 
 
 class ProgressService:
@@ -17,7 +19,22 @@ class ProgressService:
     def log_weight(db: Session, user_id: int, weight: float):
 
         if weight <= 0:
-            raise Exception("Weight must be positive")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Weight must be positive"
+            )
+        
+        if weight < 20:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Weight must be at least 20 kg"
+            )
+        
+        if weight > 500:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Weight cannot exceed 500 kg"
+            )
 
         entry = WeightLog(
             user_id=user_id,
@@ -37,6 +54,93 @@ class ProgressService:
                  .filter(WeightLog.user_id == user_id)\
                  .order_by(WeightLog.date.asc())\
                  .all()
+
+    @staticmethod
+    def get_weight_history_filtered(db: Session, user_id: int,
+                                    start_date: Optional[date] = None,
+                                    end_date: Optional[date] = None,
+                                    skip: int = 0,
+                                    limit: int = 50):
+        """Get weight logs with optional date filtering and pagination."""
+        query = db.query(WeightLog).filter(WeightLog.user_id == user_id)
+        
+        if start_date:
+            query = query.filter(WeightLog.date >= start_date)
+        if end_date:
+            query = query.filter(WeightLog.date <= end_date)
+        
+        # Get total count
+        total = query.count()
+        
+        # Apply pagination and ordering
+        items = query.order_by(WeightLog.date.desc())\
+                    .offset(skip)\
+                    .limit(limit)\
+                    .all()
+        
+        return {
+            "items": items,
+            "total": total,
+            "skip": skip,
+            "limit": limit,
+            "has_more": (skip + len(items)) < total
+        }
+
+    @staticmethod
+    def get_weight_by_id(db: Session, user_id: int, log_id: int):
+        log = db.query(WeightLog).filter(
+            WeightLog.id == log_id,
+            WeightLog.user_id == user_id
+        ).first()
+        
+        if not log:
+            raise HTTPException(status_code=404, detail="Weight log not found")
+        
+        return log
+
+    @staticmethod
+    def update_weight(db: Session, user_id: int, log_id: int, weight: float = None, log_date: date = None):
+        log = ProgressService.get_weight_by_id(db, user_id, log_id)
+        
+        if weight is not None:
+            if weight <= 0:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Weight must be positive"
+                )
+            if weight < 20:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Weight must be at least 20 kg"
+                )
+            if weight > 500:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Weight cannot exceed 500 kg"
+                )
+            log.weight = weight
+        
+        if log_date is not None:
+            if log_date > date.today():
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Date cannot be in the future"
+                )
+            log.date = log_date
+        
+        db.commit()
+        db.refresh(log)
+        
+        return log
+
+    @staticmethod
+    def delete_weight(db: Session, user_id: int, log_id: int):
+        log = ProgressService.get_weight_by_id(db, user_id, log_id)
+        
+        db.delete(log)
+        db.commit()
+        
+        return {"message": "Weight log deleted successfully"}
 
     # -------------------------
     # Weekly Weight Change
@@ -105,7 +209,7 @@ class ProgressService:
         for day_tuple in food_days:
             day = day_tuple[0]
 
-            total_calories = db.query(func.sum(FoodLog.calories))\
+            total_calories = db.query(func.sum(FoodLog.calculated_calories))\
                 .filter(
                     FoodLog.user_id == user_id,
                     FoodLog.date == day

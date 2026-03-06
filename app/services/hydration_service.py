@@ -1,8 +1,10 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from datetime import date
+from fastapi import HTTPException, status
 from app.models.water_log import WaterLog
 from app.models.daily_target import DailyTarget
+from typing import Optional
 
 class HydrationService:
 
@@ -10,7 +12,16 @@ class HydrationService:
     def log_water(db: Session, user_id: int, amount_ml: int):
 
         if amount_ml <= 0:
-            raise Exception("Water amount must be greater than zero")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Water amount must be greater than zero"
+            )
+        
+        if amount_ml > 5000:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Single water log cannot exceed 5000 ml (5 liters)"
+            )
 
         water_log = WaterLog(
             user_id=user_id,
@@ -52,4 +63,56 @@ class HydrationService:
             "total_consumed_ml": total_consumed,
             "remaining_ml": remaining_ml,
             "progress_percentage": round(progress_percentage, 2)
+        }
+
+    @staticmethod
+    def get_by_id(db: Session, user_id: int, log_id: int):
+        log = db.query(WaterLog).filter(
+            WaterLog.id == log_id,
+            WaterLog.user_id == user_id
+        ).first()
+        
+        if not log:
+            raise HTTPException(status_code=404, detail="Water log not found")
+        
+        return log
+
+    @staticmethod
+    def delete_log(db: Session, user_id: int, log_id: int):
+        log = HydrationService.get_by_id(db, user_id, log_id)
+        
+        db.delete(log)
+        db.commit()
+        
+        return {"message": "Water log deleted successfully"}
+
+    @staticmethod
+    def get_logs_history(db: Session, user_id: int,
+                        start_date: Optional[date] = None,
+                        end_date: Optional[date] = None,
+                        skip: int = 0,
+                        limit: int = 50):
+        """Get water logs with optional date filtering and pagination."""
+        query = db.query(WaterLog).filter(WaterLog.user_id == user_id)
+        
+        if start_date:
+            query = query.filter(WaterLog.date >= start_date)
+        if end_date:
+            query = query.filter(WaterLog.date <= end_date)
+        
+        # Get total count
+        total = query.count()
+        
+        # Apply pagination and ordering
+        items = query.order_by(WaterLog.date.desc(), WaterLog.created_at.desc())\
+                    .offset(skip)\
+                    .limit(limit)\
+                    .all()
+        
+        return {
+            "items": items,
+            "total": total,
+            "skip": skip,
+            "limit": limit,
+            "has_more": (skip + len(items)) < total
         }

@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, Boolean, String, ForeignKey, Date, DateTime, Index
+from sqlalchemy import Column, Integer, Boolean, String, ForeignKey, Date, DateTime, Index, UniqueConstraint
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
@@ -20,8 +20,9 @@ class HabitLog(Base):
 
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
-    user = relationship("User")
+    user = relationship("User", back_populates="habit_logs")
 
     __table_args__ = (
+        UniqueConstraint('user_id', 'habit_type', 'date', name='uq_habit_user_type_date'),
         Index("idx_habit_user_date", "user_id", "date"),
     )

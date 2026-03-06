@@ -58,3 +58,26 @@ class DailyTargetService:
             raise HTTPException(status_code=404, detail="Target not found")
 
         return target
+
+    @staticmethod
+    def update_target(db: Session, user_id: int, target_date: date, 
+                     calorie_target: int = None, protein_target: int = None,
+                     fat_target: int = None, carb_target: int = None, water_target: int = None):
+        
+        target = DailyTargetService.get_by_date(db, user_id, target_date)
+        
+        if calorie_target is not None:
+            target.calorie_target = calorie_target
+        if protein_target is not None:
+            target.protein_target = protein_target
+        if fat_target is not None:
+            target.fat_target = fat_target
+        if carb_target is not None:
+            target.carb_target = carb_target
+        if water_target is not None:
+            target.water_target = water_target
+        
+        db.commit()
+        db.refresh(target)
+        
+        return target

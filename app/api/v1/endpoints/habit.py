@@ -4,11 +4,12 @@ from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.core.security import get_current_user
 from app.services.habit_service import HabitService
+from app.schemas.habit import HabitStatusResponse, HabitStreaksResponse
 
 router = APIRouter(prefix="/habit", tags=["Habit"])
 
 
-@router.get("/today-status")
+@router.get("/today-status", response_model=HabitStatusResponse)
 def today_status(
         db: Session = Depends(get_db),
         current_user = Depends(get_current_user)):
@@ -19,7 +20,7 @@ def today_status(
     )
 
 
-@router.get("/streaks")
+@router.get("/streaks", response_model=HabitStreaksResponse)
 def habit_streaks(
         db: Session = Depends(get_db),
         current_user = Depends(get_current_user)):

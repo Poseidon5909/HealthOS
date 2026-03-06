@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, Float, String, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, Float, String, DateTime, ForeignKey, CheckConstraint
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.core.database import Base
@@ -19,4 +19,10 @@ class UserProfile(Base):
 
   updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
-  user = relationship("User", backref="profile")
+  user = relationship("User", back_populates="profile")
+  
+  __table_args__ = (
+    CheckConstraint('height > 0', name='check_height_positive'),
+    CheckConstraint('weight > 0', name='check_weight_positive'),
+    CheckConstraint('age > 0', name='check_age_positive'),
+  )

@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, Float, ForeignKey, Date, DateTime, Index
+from sqlalchemy import Column, Integer, Float, ForeignKey, Date, DateTime, Index, UniqueConstraint, CheckConstraint
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.core.database import Base
@@ -16,9 +16,11 @@ class WeightLog(Base):
 
   created_at = Column(DateTime(timezone=True), server_default=func.now())
 
-  user = relationship("User")
+  user = relationship("User", back_populates="weight_logs")
 
   __table_args__ = (
+    UniqueConstraint('user_id', 'created_at', name='uq_weight_user_time'),
+    CheckConstraint('weight > 0', name='check_weight_positive'),
     Index("idx_weight_user_date", "user_id", "date"),
   )
 
