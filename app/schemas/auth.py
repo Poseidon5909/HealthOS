@@ -19,3 +19,19 @@ class TokenPayload(BaseModel):
   sub: str  # user id
   type: str  # "access" or "refresh"
   exp: int  # expiration timestamp
+
+
+class ForgotPasswordRequest(BaseModel):
+  """Request body for forgot password"""
+  email: str
+
+
+class ResetPasswordRequest(BaseModel):
+  """Request body for password reset"""
+  token: str
+  new_password: str
+
+
+class VerifyEmailRequest(BaseModel):
+  """Request body for email verification"""
+  token: str

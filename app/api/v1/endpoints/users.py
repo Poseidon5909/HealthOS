@@ -5,8 +5,10 @@ from slowapi.util import get_remote_address
 from app.core.database import get_db
 from app.models.user import User
 from app.schemas.user import UserCreate, UserResponse, UserUpdate, PasswordChange
-from app.core.security import hash_password, get_current_user
+from app.schemas.auth import VerifyEmailRequest
+from app.core.security import hash_password, get_current_user, verify_email_token
 from app.services.user_service import UserService
+from app.services.email_service import EmailService
 
 router = APIRouter()
 limiter = Limiter(key_func=get_remote_address)
@@ -33,12 +35,19 @@ def create_user(request: Request, user: UserCreate, db: Session = Depends(get_db
         email=user.email,
         password_hash=hash_password(user.password),
         is_active=True,
-        email_verified=False
+        email_verified=False,
+        role='user'
     )
 
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
+    
+    # Send verification email (non-blocking)
+    try:
+        EmailService.send_verification_email(new_user.email, new_user.name)
+    except Exception as e:
+        print(f"Failed to send verification email: {str(e)}")
 
     return new_user
 
@@ -98,18 +107,42 @@ def change_password(
     )
 
 
-@router.post("/me/verify-email", response_model=UserResponse)
+@router.post("/verify-email", response_model=UserResponse)
 def verify_email(
-    current_user = Depends(get_current_user),
+    verify_data: VerifyEmailRequest,
     db: Session = Depends(get_db)
 ):
     """
-    Mark current user's email as verified.
+    Verify user's email address using verification token.
     
-    Note: In production, this should be protected by email verification token.
-    This is a simplified version for development.
+    - **token**: Email verification token sent to user's email
+    
+    The token is sent via email after registration and expires in 24 hours.
     """
-    return UserService.verify_email(db, current_user.id)
+    # Verify and extract email from token
+    email = verify_email_token(verify_data.token)
+    
+    # Find user by email
+    user = db.query(User).filter(User.email == email).first()
+    if not user:
+        raise HTTPException(
+            status_code=404,
+            detail="User not found"
+        )
+    
+    # Check if already verified
+    if user.email_verified:
+        raise HTTPException(
+            status_code=400,
+            detail="Email already verified"
+        )
+    
+    # Mark as verified
+    user.email_verified = True
+    db.commit()
+    db.refresh(user)
+    
+    return user
 
 
 @router.post("/me/deactivate")

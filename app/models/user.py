@@ -17,6 +17,8 @@ class User(Base):
   is_active = Column(Boolean, default=True, nullable=False)
   
   email_verified = Column(Boolean, default=False, nullable=False)
+  
+  role = Column(String(20), default='user', nullable=False)
 
   created_at = Column(DateTime(timezone=True), server_default=func.now())
   

@@ -49,10 +49,12 @@ class ProgressService:
         return entry
 
     @staticmethod
-    def get_weight_history(db: Session, user_id: int):
+    def get_weight_history(db: Session, user_id: int, skip: int = 0, limit: int = 100):
         return db.query(WeightLog)\
                  .filter(WeightLog.user_id == user_id)\
                  .order_by(WeightLog.date.asc())\
+                 .offset(skip)\
+                 .limit(limit)\
                  .all()
 
     @staticmethod

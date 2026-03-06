@@ -1,7 +1,14 @@
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
 from app.models.user import User
-from app.core.security import verify_password, create_access_token, create_refresh_token, verify_token_type
+from app.core.security import (
+    verify_password, 
+    create_access_token, 
+    create_refresh_token, 
+    verify_token_type,
+    verify_password_reset_token,
+    hash_password
+)
 from app.core.config import settings
 
 def authenticate_user(db: Session, email: str, password: str):
@@ -73,4 +80,34 @@ def refresh_access_token(db: Session, refresh_token: str):
     "access_token": access_token,
     "token_type": "bearer",
     "expires_in": settings.ACCESS_TOKEN_EXPIRE_MINUTES
+  }
+
+
+def reset_password_with_token(db: Session, token: str, new_password: str):
+  """Reset user password using valid reset token"""
+  
+  # Verify token and get email
+  email = verify_password_reset_token(token)
+  
+  # Find user by email
+  user = db.query(User).filter(User.email == email).first()
+  if not user:
+    raise HTTPException(
+      status_code=status.HTTP_404_NOT_FOUND,
+      detail="User not found"
+    )
+  
+  # Check if account is active
+  if not user.is_active:
+    raise HTTPException(
+      status_code=status.HTTP_403_FORBIDDEN,
+      detail="Account is deactivated. Please contact support."
+    )
+  
+  # Update password
+  user.password_hash = hash_password(new_password)
+  db.commit()
+  
+  return {
+    "message": "Password reset successfully. Please login with your new password."
   }

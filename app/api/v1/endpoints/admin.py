@@ -1,6 +1,9 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 from app.core.database import get_db
+from app.core.security import get_admin_user
 from app.models.food_item import FoodItem
 from app.models.serving_size import ServingSize
 from app.models.exercise import Exercise
@@ -9,10 +12,16 @@ from app.seeds.exercise_seed import seed_exercises
 from app.seeds.serving_size_seed import seed_serving_sizes
 
 router = APIRouter()
+limiter = Limiter(key_func=get_remote_address)
 
 
 @router.post("/reseed-database")
-def reseed_database(db: Session = Depends(get_db)):
+@limiter.limit("2/hour")
+def reseed_database(
+    request: Request,
+    db: Session = Depends(get_db),
+    current_user = Depends(get_admin_user)
+):
     """
     ⚠️ ADMIN ONLY: Clear and reseed all food, exercise, and serving size data.
     

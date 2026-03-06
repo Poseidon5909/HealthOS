@@ -22,10 +22,14 @@ def log_weight(weight_data: WeightLogCreate,
   return ProgressService.log_weight(db, current_user.id, weight_data.weight)
 
 @router.get("/weight/history", response_model=List[WeightLogResponse])
-def weight_history(db: Session = Depends(get_db),
-                   current_user = Depends(get_current_user)):
+def weight_history(
+    skip: int = Query(0, ge=0, description="Number of items to skip"),
+    limit: int = Query(100, ge=1, le=500, description="Number of items to return"),
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_user)
+):
   """Get complete weight history for the current user (ascending by date)."""
-  return ProgressService.get_weight_history(db, current_user.id)
+  return ProgressService.get_weight_history(db, current_user.id, skip, limit)
 
 @router.get("/weight/history/filtered", response_model=PaginatedResponse[WeightLogResponse])
 def weight_history_filtered(

@@ -4,9 +4,11 @@ from sqlalchemy.orm import Session
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 from app.core.database import get_db
-from app.services.auth_service import authenticate_user, refresh_access_token
-from app.core.security import get_current_user
-from app.schemas.auth import TokenResponse, RefreshTokenRequest
+from app.services.auth_service import authenticate_user, refresh_access_token, reset_password_with_token
+from app.core.security import get_current_user, verify_password_reset_token
+from app.schemas.auth import TokenResponse, RefreshTokenRequest, ForgotPasswordRequest, ResetPasswordRequest
+from app.services.email_service import EmailService
+from app.models.user import User
 
 router = APIRouter()
 limiter = Limiter(key_func=get_remote_address)
@@ -63,3 +65,57 @@ def protected_route(current_user=Depends(get_current_user)):
     Example protected endpoint requiring authentication.
     """
     return {"message": f"Welcome {current_user.name}"}
+
+
+@router.post("/forgot-password")
+@limiter.limit("3/hour")  # Strict limit to prevent abuse
+def forgot_password(
+    request: Request,
+    forgot_data: ForgotPasswordRequest,
+    db: Session = Depends(get_db)
+):
+    """
+    Request password reset email.
+    
+    - **email**: User's email address
+    
+    Sends password reset link to the email if account exists.
+    For security, always returns success even if email doesn't exist.
+    
+    Rate limit: 3 attempts per hour to prevent abuse.
+    """
+    # Always return success to prevent user enumeration
+    # But only send email if user exists
+    user = db.query(User).filter(User.email == forgot_data.email).first()
+    
+    if user:
+        try:
+            EmailService.send_password_reset_email(user.email, user.name)
+        except Exception as e:
+            print(f"Failed to send password reset email: {str(e)}")
+    
+    return {
+        "message": "If the email exists, a password reset link has been sent"
+    }
+
+
+@router.post("/reset-password")
+@limiter.limit("5/hour")  # Moderate limit for password reset
+def reset_password(
+    request: Request,
+    reset_data: ResetPasswordRequest,
+    db: Session = Depends(get_db)
+):
+    """
+    Reset password using reset token.
+    
+    - **token**: Password reset token from email
+    - **new_password**: New strong password
+    
+    Rate limit: 5 attempts per hour.
+    """
+    return reset_password_with_token(
+        db,
+        reset_data.token,
+        reset_data.new_password
+    )

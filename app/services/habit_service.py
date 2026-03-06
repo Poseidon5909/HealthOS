@@ -1,11 +1,13 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from datetime import date, timedelta
+from fastapi import HTTPException, status
 
 from app.models.daily_target import DailyTarget
 from app.models.food_log import FoodLog
 from app.models.workout_log import WorkoutLog
 from app.models.water_log import WaterLog
+from app.models.habit_log import HabitLog
 
 
 class HabitService:
@@ -132,3 +134,94 @@ class HabitService:
             "nutrition_streak": nutrition_streak,
             "workout_streak": workout_streak
         }
+
+    # ---------------------------
+    # Habit Log CRUD Operations
+    # ---------------------------
+
+    @staticmethod
+    def create_habit_log(db: Session, user_id: int, habit_type: str, success: bool, log_date: date = None):
+        """Create a new habit log entry."""
+        if log_date is None:
+            log_date = date.today()
+        
+        # Check if log already exists for this user, habit type, and date
+        existing_log = db.query(HabitLog).filter(
+            HabitLog.user_id == user_id,
+            HabitLog.habit_type == habit_type,
+            HabitLog.date == log_date
+        ).first()
+        
+        if existing_log:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Habit log for '{habit_type}' on {log_date} already exists"
+            )
+        
+        habit_log = HabitLog(
+            user_id=user_id,
+            habit_type=habit_type,
+            success=success,
+            date=log_date
+        )
+        
+        db.add(habit_log)
+        db.commit()
+        db.refresh(habit_log)
+        
+        return habit_log
+
+    @staticmethod
+    def get_habit_history(db: Session, user_id: int, skip: int = 0, limit: int = 50):
+        """Get paginated habit log history for a user."""
+        query = db.query(HabitLog).filter(HabitLog.user_id == user_id)
+        
+        total = query.count()
+        
+        items = query.order_by(HabitLog.date.desc())\
+                    .offset(skip)\
+                    .limit(limit)\
+                    .all()
+        
+        return {
+            "items": items,
+            "total": total,
+            "skip": skip,
+            "limit": limit,
+            "has_more": (skip + len(items)) < total
+        }
+
+    @staticmethod
+    def get_habit_by_id(db: Session, user_id: int, log_id: int):
+        """Get a specific habit log by ID."""
+        habit_log = db.query(HabitLog).filter(
+            HabitLog.id == log_id,
+            HabitLog.user_id == user_id
+        ).first()
+        
+        if not habit_log:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Habit log not found"
+            )
+        
+        return habit_log
+
+    @staticmethod
+    def delete_habit_log(db: Session, user_id: int, log_id: int):
+        """Delete a habit log."""
+        habit_log = db.query(HabitLog).filter(
+            HabitLog.id == log_id,
+            HabitLog.user_id == user_id
+        ).first()
+        
+        if not habit_log:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Habit log not found"
+            )
+        
+        db.delete(habit_log)
+        db.commit()
+        
+        return {"message": "Habit log deleted successfully"}

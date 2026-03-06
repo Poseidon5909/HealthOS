@@ -26,6 +26,7 @@ class UserResponse(BaseModel):
   email: EmailStr
   is_active: bool
   email_verified: bool
+  role: str
   created_at: datetime
 
   class Config:
