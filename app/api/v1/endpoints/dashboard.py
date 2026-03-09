@@ -6,7 +6,7 @@ from app.core.security import get_current_user
 from app.services.dashboard_service import DashboardService
 from app.schemas.dashboard import DashboardResponse
 
-router = APIRouter(prefix="/dashboard", tags=["Dashboard"])
+router = APIRouter()
 
 @router.get("/", response_model=DashboardResponse)
 def get_dashboard(
