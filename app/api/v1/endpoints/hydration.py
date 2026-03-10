@@ -50,15 +50,19 @@ def get_water_history(
 
 @router.get("/daily", response_model=HydrationSummary)
 def get_daily_summary(
-    log_date: date,
+    log_date: date = Query(default=None, description="Date to get summary for (defaults to today)"),
     db: Session = Depends(get_db),
     current_user = Depends(get_current_user)
 ):
     """
     Get hydration summary for a specific date.
     
-    - **log_date**: Date to get summary for
+    - **log_date**: Date to get summary for (defaults to today if not provided)
     """
+    # Default to today if not provided
+    if log_date is None:
+        log_date = date.today()
+    
     return HydrationService.get_daily_summary(
         db=db,
         user_id=current_user.id,
