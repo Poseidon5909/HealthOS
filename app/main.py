@@ -131,7 +131,7 @@ async def general_exception_handler(request: Request, exc: Exception):
         }
     )
 
-app.include_router(api_router)
+app.include_router(api_router, prefix="/api/v1")
 
 
 @app.get("/")

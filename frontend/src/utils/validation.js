@@ -107,7 +107,7 @@ export const parseErrorMessage = (error) => {
       return data?.detail || 'Invalid request. Please check your input.';
     
     case 401:
-      return 'Invalid email or password.';
+      return data?.detail || data?.message || 'Unauthorized request.';
     
     case 422:
       // FastAPI validation errors

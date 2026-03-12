@@ -7,11 +7,13 @@ import {
   deleteWaterLog,
   HYDRATION_QUERY_KEYS 
 } from '../../services/hydrationService';
+import { getTodayDailyTargets, NUTRITION_QUERY_KEYS } from '../../services/nutritionTargetsService';
 
 // Import hydration components
 import WaterProgressCard from '../../components/hydration/WaterProgressCard';
 import WaterLogButtons from '../../components/hydration/WaterLogButtons';
 import WaterHistoryList from '../../components/hydration/WaterHistoryList';
+import DailyTargetsCard from '../../components/nutrition/DailyTargetsCard';
 
 /**
  * Hydration Page (Day 9)
@@ -80,6 +82,15 @@ function Hydration() {
       console.error('History error:', error);
       console.error('Error response:', error.response?.data);
     }
+  });
+
+  const {
+    data: dailyTargets,
+  } = useQuery({
+    queryKey: NUTRITION_QUERY_KEYS.todayTargets,
+    queryFn: getTodayDailyTargets,
+    staleTime: 60 * 1000,
+    refetchOnWindowFocus: true,
   });
 
   // ========================================
@@ -231,6 +242,13 @@ function Hydration() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column - Progress and Quick Add */}
         <div className="lg:col-span-1 space-y-6">
+          <DailyTargetsCard
+            targets={dailyTargets}
+            title="Saved Daily Targets"
+            description="Hydration progress uses the shared water goal saved in your daily targets so your intake percentage stays aligned with your nutrition plan."
+            compact
+          />
+
           {/* Daily Progress Card */}
           <WaterProgressCard 
             dailySummary={dailySummary} 

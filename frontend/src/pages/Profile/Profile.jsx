@@ -1,40 +1,172 @@
+import { useEffect } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import useAuthStore from '../../store/authStore';
+import {
+  changeCurrentUserPassword,
+  deactivateCurrentUserAccount,
+  deleteCurrentUserAccount,
+  getCurrentUserProfile,
+  PROFILE_QUERY_KEY,
+  updateCurrentUserProfile,
+} from '../../services/profileService';
+import { parseErrorMessage } from '../../utils/validation';
+import ProfileCard from '../../components/profile/ProfileCard';
+import ProfileEditForm from '../../components/profile/ProfileEditForm';
+import ChangePasswordForm from '../../components/profile/ChangePasswordForm';
+import AccountActions from '../../components/profile/AccountActions';
 
 function Profile() {
-  const { user } = useAuthStore();
+  const queryClient = useQueryClient();
+  const setUser = useAuthStore((state) => state.setUser);
+  const logout = useAuthStore((state) => state.logout);
+
+  const {
+    data: profile,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useQuery({
+    queryKey: PROFILE_QUERY_KEY,
+    queryFn: getCurrentUserProfile,
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: true,
+  });
+
+  useEffect(() => {
+    if (profile) {
+      setUser(profile);
+    }
+  }, [profile, setUser]);
+
+  const updateProfileMutation = useMutation({
+    mutationFn: updateCurrentUserProfile,
+    onSuccess: async (updatedProfile) => {
+      setUser(updatedProfile);
+      queryClient.setQueryData(PROFILE_QUERY_KEY, updatedProfile);
+      await queryClient.invalidateQueries({ queryKey: PROFILE_QUERY_KEY });
+      alert('Profile updated successfully.');
+    },
+    onError: (mutationError) => {
+      alert(parseErrorMessage(mutationError));
+    },
+  });
+
+  const changePasswordMutation = useMutation({
+    mutationFn: changeCurrentUserPassword,
+    onSuccess: (response) => {
+      alert(response?.message || 'Password changed successfully.');
+    },
+    onError: (mutationError) => {
+      alert(parseErrorMessage(mutationError));
+    },
+  });
+
+  const deactivateAccountMutation = useMutation({
+    mutationFn: deactivateCurrentUserAccount,
+    onSuccess: (response) => {
+      alert(response?.message || 'Account deactivated successfully.');
+      logout();
+    },
+    onError: (mutationError) => {
+      alert(parseErrorMessage(mutationError));
+    },
+  });
+
+  const deleteAccountMutation = useMutation({
+    mutationFn: deleteCurrentUserAccount,
+    onSuccess: (response) => {
+      alert(response?.message || 'Account deleted successfully.');
+      logout();
+    },
+    onError: (mutationError) => {
+      alert(parseErrorMessage(mutationError));
+    },
+  });
+
+  const handleProfileUpdate = async (profileData) => {
+    await updateProfileMutation.mutateAsync(profileData);
+  };
+
+  const handlePasswordChange = async (passwordData) => {
+    await changePasswordMutation.mutateAsync(passwordData);
+  };
+
+  const handleDeactivate = async (password) => {
+    await deactivateAccountMutation.mutateAsync(password);
+  };
+
+  const handleDelete = async (password) => {
+    await deleteAccountMutation.mutateAsync(password);
+  };
 
   return (
     <div>
-      {/* Page Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 flex items-center">
           <span className="mr-3">👤</span>
           Profile
         </h1>
-        <p className="text-gray-600 mt-2">Manage your account and preferences</p>
+        <p className="text-gray-600 mt-2">
+          Manage your account details, security settings, and lifecycle actions from one place.
+        </p>
       </div>
 
-      {/* User Info Preview */}
-      <div className="bg-white rounded-lg shadow-md p-8">
-        <div className="flex items-center mb-6">
-          <div className="w-20 h-20 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center text-white text-3xl font-bold shadow-lg">
-            {user?.name?.charAt(0).toUpperCase() || 'U'}
-          </div>
-          <div className="ml-6">
-            <h2 className="text-2xl font-bold text-gray-900">{user?.name || 'User'}</h2>
-            <p className="text-gray-600">{user?.email || 'user@example.com'}</p>
-          </div>
-        </div>
-        <div className="border-t pt-6">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">Account Status</h3>
-          <div className="space-y-2 text-sm">
-            <p><span className="font-medium">Status:</span> <span className="text-green-600">Active</span></p>
-            <p><span className="font-medium">Email Verified:</span> <span className="text-gray-600">{user?.email_verified ? 'Yes' : 'Pending'}</span></p>
-            <p><span className="font-medium">Role:</span> <span className="text-gray-600">{user?.role || 'User'}</span></p>
-          </div>
-        </div>
-        <div className="mt-6 text-sm text-indigo-600 font-medium">Full profile editor coming in Day 10+</div>
+      <div className="mb-6 rounded-2xl border border-sky-100 bg-sky-50 p-5 text-sm text-sky-900">
+        React Query manages the server state on this page. The profile is cached under one query key, and successful mutations invalidate that cache so the page automatically refetches fresh account data instead of relying on stale local copies.
       </div>
+
+      {isLoading && (
+        <div className="flex items-center justify-center min-h-[320px] rounded-2xl border border-slate-200 bg-white shadow-sm">
+          <div className="text-center">
+            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-sky-600 mb-4"></div>
+            <p className="text-slate-600">Loading your profile...</p>
+          </div>
+        </div>
+      )}
+
+      {isError && (
+        <div className="rounded-2xl border border-rose-200 bg-rose-50 p-6 text-center">
+          <div className="text-4xl mb-3">⚠️</div>
+          <h2 className="text-lg font-semibold text-rose-900">Unable to load your profile</h2>
+          <p className="text-sm text-rose-700 mt-2">
+            {error?.response?.data?.detail || error?.message || 'An unexpected error occurred.'}
+          </p>
+          <button
+            type="button"
+            onClick={() => refetch()}
+            className="mt-4 inline-flex items-center justify-center rounded-xl bg-rose-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-rose-700"
+          >
+            Retry
+          </button>
+        </div>
+      )}
+
+      {!isLoading && !isError && profile && (
+        <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] gap-6 items-start">
+          <div className="space-y-6">
+            <ProfileCard profile={profile} />
+          </div>
+
+          <div className="space-y-6">
+            <ProfileEditForm
+              profile={profile}
+              onSubmit={handleProfileUpdate}
+              isSubmitting={updateProfileMutation.isPending}
+            />
+            <ChangePasswordForm
+              onSubmit={handlePasswordChange}
+              isSubmitting={changePasswordMutation.isPending}
+            />
+            <AccountActions
+              onDeactivate={handleDeactivate}
+              onDelete={handleDelete}
+              isDeactivating={deactivateAccountMutation.isPending}
+              isDeleting={deleteAccountMutation.isPending}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

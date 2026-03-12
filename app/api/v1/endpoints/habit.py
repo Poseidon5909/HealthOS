@@ -12,7 +12,7 @@ from app.schemas.habit import (
 )
 from app.schemas.pagination import PaginatedResponse
 
-router = APIRouter(prefix="/habit", tags=["Habit"])
+router = APIRouter(tags=["Habits"])
 
 
 @router.get("/today-status", response_model=HabitStatusResponse)

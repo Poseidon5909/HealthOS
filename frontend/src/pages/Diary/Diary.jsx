@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { searchFoods, getTodayFoodLogs, getTodayMealSummary, logFood, updateFoodLog, deleteFoodLog, FOOD_QUERY_KEYS } from '../../services/foodService';
+import { getTodayDailyTargets, NUTRITION_QUERY_KEYS } from '../../services/nutritionTargetsService';
 import FoodSearchBar from '../../components/food/FoodSearchBar';
 import FoodSearchResults from '../../components/food/FoodSearchResults';
 import FoodLogForm from '../../components/food/FoodLogForm';
 import EditFoodLogModal from '../../components/food/EditFoodLogModal';
 import FoodLogList from '../../components/food/FoodLogList';
+import DailyTargetsCard from '../../components/nutrition/DailyTargetsCard';
 
 /**
  * Diary Page
@@ -23,6 +25,13 @@ function Diary() {
   const [selectedFood, setSelectedFood] = useState(null);
   const [editingLog, setEditingLog] = useState(null);
   const [targetMealType, setTargetMealType] = useState('breakfast');
+
+  const { data: dailyTargets } = useQuery({
+    queryKey: NUTRITION_QUERY_KEYS.todayTargets,
+    queryFn: getTodayDailyTargets,
+    staleTime: 60 * 1000,
+    refetchOnWindowFocus: true,
+  });
 
   // Fetch today's food logs
   const {
@@ -173,8 +182,15 @@ function Diary() {
         </p>
       </div>
 
+      <DailyTargetsCard
+        targets={dailyTargets}
+        title="Nutrition Goal Baseline"
+        description="Your diary uses these centralized daily calorie and macro targets as the comparison baseline for meal logging and nutrition progress." 
+        compact
+      />
+
       {/* Food Search Section */}
-      <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+      <div className="bg-white rounded-lg shadow-md p-6 mb-6 mt-6">
         <h2 className="text-xl font-semibold text-gray-900 mb-4">🔍 Search Foods</h2>
         <FoodSearchBar onSearch={handleSearch} isLoading={isSearching} />
         

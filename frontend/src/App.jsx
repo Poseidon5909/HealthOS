@@ -17,6 +17,7 @@ import Hydration from './pages/Hydration';
 import Progress from './pages/Progress';
 import Habits from './pages/Habits';
 import Profile from './pages/Profile';
+import Nutrition from './pages/Nutrition';
 
 // Protected Route Component
 function ProtectedRoute({ children }) {
@@ -162,6 +163,16 @@ function App() {
               <ProtectedRoute>
                 <MainLayout>
                   <Habits />
+                </MainLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/nutrition"
+            element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <Nutrition />
                 </MainLayout>
               </ProtectedRoute>
             }

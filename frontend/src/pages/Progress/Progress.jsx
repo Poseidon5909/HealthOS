@@ -14,8 +14,11 @@ import WeeklySummaryCard from '../../components/progress/WeeklySummaryCard';
 import WeightHistoryList from '../../components/progress/WeightHistoryList';
 import WeightChart from '../../components/progress/WeightChart';
 
+// Import analytics components (Day 11)
+import ConsistencyOverview from '../../components/analytics/ConsistencyOverview';
+
 /**
- * Progress Page (Day 10)
+ * Progress Page (Day 10 + Day 11)
  * 
  * Complete weight tracking system with:
  * - Weight logging form with validation
@@ -229,10 +232,29 @@ function Progress() {
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 flex items-center">
           <span className="mr-3">📈</span>
-          Weight Progress Tracker
+          Progress & Analytics
         </h1>
         <p className="text-gray-600 mt-2">
-          Track your weight journey and visualize your progress over time
+          Track your health journey with weight tracking and consistency analytics
+        </p>
+      </div>
+
+      {/* Consistency Analytics Section (Day 11) */}
+      <div className="mb-8">
+        <ConsistencyOverview days={30} />
+      </div>
+
+      {/* Divider */}
+      <div className="border-t-2 border-gray-200 my-8"></div>
+
+      {/* Weight Tracking Section Header */}
+      <div className="mb-6">
+        <h2 className="text-2xl font-bold text-gray-900 flex items-center">
+          <span className="mr-3">⚖️</span>
+          Weight Tracking
+        </h2>
+        <p className="text-gray-600 mt-1">
+          Monitor your weight changes over time
         </p>
       </div>
 
