@@ -1,3 +1,5 @@
+import { Card, Skeleton } from '../../components/ui';
+
 function Workouts() {
   return (
     <div>
@@ -11,12 +13,23 @@ function Workouts() {
       </div>
 
       {/* Placeholder Content */}
-      <div className="bg-white rounded-lg shadow-md p-8 text-center">
-        <div className="text-6xl mb-4">🏋️</div>
-        <h2 className="text-xl font-semibold text-gray-800 mb-2">Workout Tracking Coming Soon</h2>
-        <p className="text-gray-600">This feature will allow you to log workouts and monitor your exercise progress.</p>
-        <div className="mt-6 text-sm text-indigo-600 font-medium">Implementation coming in Day 6+</div>
-      </div>
+      <Card className="text-center">
+        <div className="mb-4 text-6xl">🏋️</div>
+        <h2 className="mb-2 text-xl font-semibold text-gray-800">Workout Tracking Module Pending Integration</h2>
+        <p className="mx-auto max-w-xl text-gray-600">
+          This screen is now ready for a full workout logging flow with loading skeletons, history, and toast feedback once workout endpoints are connected on the frontend.
+        </p>
+
+        <div className="mx-auto mt-8 grid max-w-3xl grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {[...Array(3)].map((_, index) => (
+            <div key={index} className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-left">
+              <Skeleton className="mb-3 h-5 w-1/2" />
+              <Skeleton className="mb-2 h-4 w-4/5" />
+              <Skeleton className="h-4 w-2/3" />
+            </div>
+          ))}
+        </div>
+      </Card>
     </div>
   );
 }

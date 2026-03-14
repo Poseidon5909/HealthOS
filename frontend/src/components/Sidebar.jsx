@@ -27,12 +27,13 @@ import useAuthStore from '../store/authStore';
  * Each has an icon, label, and route path.
  * Using NavLink for active state styling.
  */
-function Sidebar() {
+function Sidebar({ isOpen = false, onClose = () => {} }) {
   const navigate = useNavigate();
   const { logout } = useAuthStore();
 
   const handleLogout = () => {
     logout();
+    onClose();
   };
 
   // Navigation configuration
@@ -48,7 +49,21 @@ function Sidebar() {
   ];
 
   return (
-    <aside className="fixed left-0 top-0 h-full w-64 bg-gradient-to-b from-indigo-600 to-purple-700 text-white shadow-2xl z-30">
+    <>
+      {isOpen && (
+        <button
+          type="button"
+          aria-label="Close navigation"
+          onClick={onClose}
+          className="fixed inset-0 z-30 bg-slate-900/50 md:hidden"
+        />
+      )}
+
+      <aside
+        className={`fixed left-0 top-0 z-40 h-full w-64 bg-gradient-to-b from-indigo-600 to-purple-700 text-white shadow-2xl transition-transform duration-200 md:translate-x-0 ${
+          isOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
       {/* Logo Section */}
       <div className="p-6 border-b border-white/20">
         <div className="flex items-center space-x-3">
@@ -70,6 +85,7 @@ function Sidebar() {
             <NavLink
               key={item.path}
               to={item.path}
+              onClick={onClose}
               className={({ isActive }) =>
                 `flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 ${
                   isActive
@@ -95,7 +111,8 @@ function Sidebar() {
           <span>Logout</span>
         </button>
       </div>
-    </aside>
+      </aside>
+    </>
   );
 }
 

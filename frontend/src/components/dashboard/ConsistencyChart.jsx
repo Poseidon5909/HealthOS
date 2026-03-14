@@ -1,130 +1,66 @@
-/**
- * ConsistencyChart Component
- * 
- * Displays consistency metrics for different logging activities:
- * - Food logging consistency
- * - Workout logging consistency
- * - Weight logging consistency
- * - Hydration logging consistency
- * 
- * Each shows a percentage with visual bar indicator
- * 
- * Props:
- * - consistency: {
- *     food_logging: { consistency_percentage },
- *     workout_logging: { consistency_percentage },
- *     weight_logging: { consistency_percentage },
- *     hydration_logging: { consistency_percentage }
- *   }
- */
+import { memo, useMemo } from 'react';
+import {
+  PolarAngleAxis,
+  PolarGrid,
+  Radar,
+  RadarChart,
+  ResponsiveContainer,
+  Tooltip
+} from 'recharts';
+import { Card } from '../ui';
 
 function ConsistencyChart({ consistency }) {
-  // Handle empty data
+  const metrics = useMemo(() => {
+    if (!consistency) {
+      return [];
+    }
+
+    return [
+      { name: 'Food', value: consistency.food_logging?.consistency_percentage || 0 },
+      { name: 'Workout', value: consistency.workout_logging?.consistency_percentage || 0 },
+      { name: 'Hydration', value: consistency.hydration_logging?.consistency_percentage || 0 },
+      { name: 'Weight', value: consistency.weight_logging?.consistency_percentage || 0 }
+    ];
+  }, [consistency]);
+
+  const overall = useMemo(() => {
+    if (metrics.length === 0) {
+      return 0;
+    }
+
+    return metrics.reduce((sum, item) => sum + item.value, 0) / metrics.length;
+  }, [metrics]);
+
   if (!consistency) {
     return (
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">📅 Consistency</h3>
-        <p className="text-gray-500 text-sm">No consistency data available</p>
-      </div>
+      <Card hoverable>
+        <h3 className="mb-3 text-lg font-semibold text-gray-800">Consistency</h3>
+        <p className="text-sm text-gray-500">No consistency data available.</p>
+      </Card>
     );
   }
 
-  // Consistency metrics configuration
-  const metrics = [
-    {
-      name: 'Food Logging',
-      icon: '🍽️',
-      percentage: consistency.food_logging?.consistency_percentage || 0,
-      color: 'bg-purple-500'
-    },
-    {
-      name: 'Workout Logging',
-      icon: '💪',
-      percentage: consistency.workout_logging?.consistency_percentage || 0,
-      color: 'bg-orange-500'
-    },
-    {
-      name: 'Hydration Logging',
-      icon: '💧',
-      percentage: consistency.hydration_logging?.consistency_percentage || 0,
-      color: 'bg-blue-500'
-    },
-    {
-      name: 'Weight Logging',
-      icon: '⚖️',
-      percentage: consistency.weight_logging?.consistency_percentage || 0,
-      color: 'bg-green-500'
-    }
-  ];
-
-  // Calculate overall consistency
-  const overallConsistency = (
-    metrics.reduce((sum, metric) => sum + metric.percentage, 0) / metrics.length
-  ).toFixed(1);
-
-  // Determine consistency rating
-  const getConsistencyRating = (percentage) => {
-    if (percentage >= 80) return { text: 'Excellent', color: 'text-green-600' };
-    if (percentage >= 60) return { text: 'Good', color: 'text-blue-600' };
-    if (percentage >= 40) return { text: 'Fair', color: 'text-yellow-600' };
-    return { text: 'Needs Improvement', color: 'text-red-600' };
-  };
-
-  const overallRating = getConsistencyRating(overallConsistency);
-
   return (
-    <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
-      {/* Header */}
-      <h3 className="text-lg font-semibold text-gray-800 mb-4">📅 Consistency</h3>
-      
-      {/* Overall Score */}
-      <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg p-4 mb-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-xs text-gray-600">Overall Score</p>
-            <p className={`text-sm font-semibold ${overallRating.color}`}>
-              {overallRating.text}
-            </p>
-          </div>
-          <div className="text-3xl font-bold text-indigo-600">
-            {overallConsistency}%
-          </div>
-        </div>
+    <Card hoverable>
+      <div className="mb-4 flex items-center justify-between">
+        <h3 className="text-lg font-semibold text-gray-800">Consistency Radar</h3>
+        <span className="rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-700">
+          {overall.toFixed(0)}% overall
+        </span>
       </div>
-      
-      {/* Individual Metrics */}
-      <div className="space-y-4">
-        {metrics.map((metric) => (
-          <div key={metric.name}>
-            {/* Metric Name and Percentage */}
-            <div className="flex justify-between items-center mb-2">
-              <span className="text-sm text-gray-700">
-                {metric.icon} {metric.name}
-              </span>
-              <span className="text-sm font-semibold text-gray-900">
-                {metric.percentage.toFixed(0)}%
-              </span>
-            </div>
-            
-            {/* Progress Bar */}
-            <div className="w-full bg-gray-200 rounded-full h-2">
-              <div
-                className={`${metric.color} h-2 rounded-full transition-all duration-500`}
-                style={{ width: `${metric.percentage}%` }}
-              ></div>
-            </div>
-          </div>
-        ))}
+
+      <div className="h-56 w-full" role="img" aria-label="Consistency radar chart across food, workout, hydration, and weight logging">
+        <ResponsiveContainer>
+          <RadarChart data={metrics}>
+            <PolarGrid stroke="#cbd5e1" />
+            <PolarAngleAxis dataKey="name" tick={{ fontSize: 12, fill: '#475569' }} />
+            <Radar name="Consistency" dataKey="value" stroke="#6366f1" fill="#6366f1" fillOpacity={0.35} />
+            <Tooltip formatter={(value) => [`${Number(value).toFixed(0)}%`, 'Consistency']} />
+          </RadarChart>
+        </ResponsiveContainer>
       </div>
-      
-      {/* Motivational Footer */}
-      <div className="mt-4 pt-4 border-t border-gray-200">
-        <p className="text-xs text-gray-600 text-center">
-          Track at least {metrics.length} days per week to improve consistency! 📊
-        </p>
-      </div>
-    </div>
+    </Card>
   );
 }
 
-export default ConsistencyChart;
+export default memo(ConsistencyChart);

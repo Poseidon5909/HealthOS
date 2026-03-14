@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'react-hot-toast';
 import { 
   getDailyHydration, 
   getHydrationHistory, 
@@ -14,6 +15,7 @@ import WaterProgressCard from '../../components/hydration/WaterProgressCard';
 import WaterLogButtons from '../../components/hydration/WaterLogButtons';
 import WaterHistoryList from '../../components/hydration/WaterHistoryList';
 import DailyTargetsCard from '../../components/nutrition/DailyTargetsCard';
+import { Card, ErrorState } from '../../components/ui';
 
 /**
  * Hydration Page (Day 9)
@@ -112,10 +114,11 @@ function Hydration() {
       // Invalidate and refetch both queries
       queryClient.invalidateQueries({ queryKey: HYDRATION_QUERY_KEYS.daily });
       queryClient.invalidateQueries({ queryKey: HYDRATION_QUERY_KEYS.history });
+      toast.success('Water logged successfully');
     },
     onError: (error) => {
       console.error('Failed to log water:', error);
-      alert('Failed to log water intake. Please try again.');
+      toast.error(error?.response?.data?.detail || 'Failed to log water intake. Please try again.');
     }
   });
 
@@ -135,7 +138,7 @@ function Hydration() {
     },
     onError: (error) => {
       console.error('Failed to delete water log:', error);
-      alert('Failed to delete water log. Please try again.');
+      toast.error(error?.response?.data?.detail || 'Failed to delete water log. Please try again.');
       setDeletingLogId(null);
     }
   });
@@ -167,7 +170,6 @@ function Hydration() {
 
   if (dailyError || historyError) {
     const error = dailyError || historyError;
-    const errorDetails = error?.response?.data?.error;
     
     return (
       <div>
@@ -179,44 +181,14 @@ function Hydration() {
           <p className="text-gray-600 mt-2">Monitor your daily water intake</p>
         </div>
         
-        <div className="bg-red-50 border border-red-200 rounded-lg p-6">
-          <div className="text-red-600 text-xl mb-2">⚠️ Error Loading Data</div>
-          <p className="text-red-800 font-semibold mb-2">
-            {errorDetails?.message || error?.message || 'Failed to load hydration data'}
-          </p>
-          
-          {/* Show validation details if available */}
-          {errorDetails?.details && (
-            <div className="mt-4 p-3 bg-red-100 rounded text-sm">
-              <p className="font-semibold mb-2">Validation Errors:</p>
-              <ul className="list-disc list-inside space-y-1">
-                {errorDetails.details.map((detail, index) => (
-                  <li key={index} className="text-red-900">
-                    <span className="font-medium">{detail.field}:</span> {detail.message}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-          
-          {/* Show raw error for debugging */}
-          <details className="mt-4">
-            <summary className="cursor-pointer text-red-700 text-sm">Show technical details</summary>
-            <pre className="mt-2 p-3 bg-red-100 rounded text-xs overflow-auto">
-              {JSON.stringify(error?.response?.data || error, null, 2)}
-            </pre>
-          </details>
-          
-          <button
-            onClick={() => {
-              queryClient.invalidateQueries({ queryKey: HYDRATION_QUERY_KEYS.daily });
-              queryClient.invalidateQueries({ queryKey: HYDRATION_QUERY_KEYS.history });
-            }}
-            className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
-          >
-            Retry
-          </button>
-        </div>
+        <ErrorState
+          title="Error loading hydration data"
+          error={error}
+          onRetry={() => {
+            queryClient.invalidateQueries({ queryKey: HYDRATION_QUERY_KEYS.daily });
+            queryClient.invalidateQueries({ queryKey: HYDRATION_QUERY_KEYS.history });
+          }}
+        />
       </div>
     );
   }
@@ -274,7 +246,7 @@ function Hydration() {
       </div>
 
       {/* Helpful Tips Section */}
-      <div className="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-6">
+      <Card className="mt-8 border-blue-200 bg-blue-50">
         <h3 className="text-lg font-semibold text-blue-900 mb-3">💡 Hydration Tips</h3>
         <ul className="space-y-2 text-sm text-blue-800">
           <li className="flex items-start">
@@ -294,7 +266,7 @@ function Hydration() {
             <span>Increase water intake during exercise or hot weather</span>
           </li>
         </ul>
-      </div>
+      </Card>
     </div>
   );
 }

@@ -1,3 +1,6 @@
+import { memo } from 'react';
+import { Card } from '../ui';
+
 /**
  * WeightCard Component
  * 
@@ -13,13 +16,13 @@ function WeightCard({ weight }) {
   // Handle empty data
   if (!weight || weight.latest_weight === null) {
     return (
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">⚖️ Weight</h3>
+      <Card hoverable>
+        <h3 className="text-lg font-semibold text-gray-800 mb-4">Weight</h3>
         <div className="text-center py-6">
           <p className="text-gray-500 text-sm">No weight data available</p>
           <p className="text-xs text-gray-400 mt-2">Start tracking your weight!</p>
         </div>
-      </div>
+      </Card>
     );
   }
 
@@ -52,9 +55,12 @@ function WeightCard({ weight }) {
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
+    <Card hoverable>
       {/* Header */}
-      <h3 className="text-lg font-semibold text-gray-800 mb-4">⚖️ Weight</h3>
+      <div className="mb-4 flex items-center justify-between">
+        <h3 className="text-lg font-semibold text-gray-800">Weight</h3>
+        <span className="rounded-full bg-emerald-100 px-2 py-1 text-xs font-semibold text-emerald-700">⚖️ Metric</span>
+      </div>
       
       {/* Current Weight Display */}
       <div className="text-center mb-4">
@@ -93,8 +99,8 @@ function WeightCard({ weight }) {
           Maintaining steady progress 👍
         </div>
       )}
-    </div>
+    </Card>
   );
 }
 
-export default WeightCard;
+export default memo(WeightCard);

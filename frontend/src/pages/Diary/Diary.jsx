@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'react-hot-toast';
 import { searchFoods, getTodayFoodLogs, getTodayMealSummary, logFood, updateFoodLog, deleteFoodLog, FOOD_QUERY_KEYS } from '../../services/foodService';
 import { getTodayDailyTargets, NUTRITION_QUERY_KEYS } from '../../services/nutritionTargetsService';
+import { Card, ErrorState, Loader, Skeleton } from '../../components/ui';
 import FoodSearchBar from '../../components/food/FoodSearchBar';
 import FoodSearchResults from '../../components/food/FoodSearchResults';
 import FoodLogForm from '../../components/food/FoodLogForm';
@@ -37,7 +39,8 @@ function Diary() {
   const {
     data: todayLogs = [],
     isLoading: isLoadingLogs,
-    isError: isErrorLogs
+    isError: isErrorLogs,
+    error: logsError
   } = useQuery({
     queryKey: FOOD_QUERY_KEYS.todayLogs,
     queryFn: getTodayFoodLogs,
@@ -60,7 +63,8 @@ function Diary() {
   const {
     data: searchResults,
     isLoading: isSearching,
-    isError: isSearchError
+    isError: isSearchError,
+    error: searchError
   } = useQuery({
     queryKey: FOOD_QUERY_KEYS.search(searchQuery),
     queryFn: () => searchFoods(searchQuery),
@@ -79,11 +83,10 @@ function Diary() {
       queryClient.invalidateQueries({ queryKey: FOOD_QUERY_KEYS.todayLogs });
       queryClient.invalidateQueries({ queryKey: FOOD_QUERY_KEYS.mealSummary });
       
-      // Show success message (optional)
-      alert('✅ Food added successfully!');
+      toast.success('Food logged successfully');
     },
     onError: (error) => {
-      alert(`❌ Error: ${error.response?.data?.detail || 'Failed to log food'}`);
+      toast.error(error?.response?.data?.detail || 'Failed to log food');
     }
   });
 
@@ -97,11 +100,11 @@ function Diary() {
       // Invalidate and refetch
       queryClient.invalidateQueries({ queryKey: FOOD_QUERY_KEYS.todayLogs });
       queryClient.invalidateQueries({ queryKey: FOOD_QUERY_KEYS.mealSummary });
-      
-      alert('✅ Food log updated successfully!');
+
+      toast.success('Food log updated successfully');
     },
     onError: (error) => {
-      alert(`❌ Error: ${error.response?.data?.detail || 'Failed to update food log'}`);
+      toast.error(error?.response?.data?.detail || 'Failed to update food log');
     }
   });
 
@@ -114,7 +117,7 @@ function Diary() {
       queryClient.invalidateQueries({ queryKey: FOOD_QUERY_KEYS.mealSummary });
     },
     onError: (error) => {
-      alert(`❌ Error: ${error.response?.data?.detail || 'Failed to delete food'}`);
+      toast.error(error?.response?.data?.detail || 'Failed to delete food');
     }
   });
 
@@ -190,7 +193,7 @@ function Diary() {
       />
 
       {/* Food Search Section */}
-      <div className="bg-white rounded-lg shadow-md p-6 mb-6 mt-6">
+      <Card className="mb-6 mt-6">
         <h2 className="text-xl font-semibold text-gray-900 mb-4">🔍 Search Foods</h2>
         <FoodSearchBar onSearch={handleSearch} isLoading={isSearching} />
         
@@ -199,10 +202,11 @@ function Diary() {
             foods={searchResults?.items || []}
             isLoading={isSearching}
             isError={isSearchError}
+            error={searchError}
             onSelectFood={handleSelectFood}
           />
         )}
-      </div>
+      </Card>
 
       {/* Today's Meals Section */}
       <div className="mb-6">
@@ -216,18 +220,16 @@ function Diary() {
         </div>
 
         {isLoadingLogs ? (
-          <div className="flex items-center justify-center py-12 bg-white rounded-lg shadow-md">
-            <div className="text-center">
-              <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mb-4"></div>
-              <p className="text-gray-600">Loading your meals...</p>
+          <Card>
+            <Loader label="Loading your meals..." />
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              {[...Array(4)].map((_, index) => (
+                <Skeleton key={index} className="h-20 w-full" />
+              ))}
             </div>
-          </div>
+          </Card>
         ) : isErrorLogs ? (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
-            <div className="text-4xl mb-3">⚠️</div>
-            <h3 className="text-lg font-semibold text-red-800 mb-2">Error Loading Meals</h3>
-            <p className="text-red-600">Unable to load today's food logs. Please try again.</p>
-          </div>
+          <ErrorState title="Error loading today's meals" error={logsError} onRetry={() => queryClient.invalidateQueries({ queryKey: FOOD_QUERY_KEYS.todayLogs })} />
         ) : (
           <FoodLogList
             foodLogs={todayLogs}

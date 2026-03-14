@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'react-hot-toast';
 import {
   getWeightHistory,
   getWeeklySummary,
@@ -16,6 +17,7 @@ import WeightChart from '../../components/progress/WeightChart';
 
 // Import analytics components (Day 11)
 import ConsistencyOverview from '../../components/analytics/ConsistencyOverview';
+import { Card, ErrorState } from '../../components/ui';
 
 /**
  * Progress Page (Day 10 + Day 11)
@@ -44,8 +46,6 @@ import ConsistencyOverview from '../../components/analytics/ConsistencyOverview'
  */
 
 function Progress() {
-  console.log('🎯 Progress component mounting...');
-  
   const queryClient = useQueryClient();
   const [deletingLogId, setDeletingLogId] = useState(null);
 
@@ -68,21 +68,11 @@ function Progress() {
     error: historyError
   } = useQuery({
     queryKey: PROGRESS_QUERY_KEYS.weightHistory,
-    queryFn: async () => {
-      try {
-        console.log('📊 Fetching weight history...');
-        const data = await getWeightHistory(0, 100);
-        console.log('✅ Weight history loaded:', data);
-        return data;
-      } catch (error) {
-        console.error('❌ Weight history error:', error);
-        console.error('Response:', error?.response?.data);
-        throw error;
-      }
-    },
-    staleTime: 30000, // Consider data fresh for 30 seconds
-    refetchOnWindowFocus: false, // Don't refetch on window focus for now
-    retry: false // Disable retries to see errors immediately
+    queryFn: () => getWeightHistory(0, 100),
+    staleTime: 2 * 60 * 1000,
+    gcTime: 15 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    retry: 1,
   });
 
   /**
@@ -97,21 +87,11 @@ function Progress() {
     error: summaryError
   } = useQuery({
     queryKey: PROGRESS_QUERY_KEYS.weeklySummary,
-    queryFn: async () => {
-      try {
-        console.log('📊 Fetching weekly summary...');
-        const data = await getWeeklySummary();
-        console.log('✅ Weekly summary loaded:', data);
-        return data;
-      } catch (error) {
-        console.error('❌ Weekly summary error:', error);
-        console.error('Response:', error?.response?.data);
-        throw error;
-      }
-    },
-    staleTime: 30000,
+    queryFn: getWeeklySummary,
+    staleTime: 2 * 60 * 1000,
+    gcTime: 15 * 60 * 1000,
     refetchOnWindowFocus: false,
-    retry: false
+    retry: 1,
   });
 
   // ========================================
@@ -136,10 +116,11 @@ function Progress() {
       // Invalidate queries to trigger refetch
       queryClient.invalidateQueries({ queryKey: PROGRESS_QUERY_KEYS.weightHistory });
       queryClient.invalidateQueries({ queryKey: PROGRESS_QUERY_KEYS.weeklySummary });
+      toast.success('Weight logged successfully');
     },
     onError: (error) => {
       console.error('Failed to log weight:', error);
-      alert('Failed to log weight. Please try again.');
+      toast.error(error?.response?.data?.detail || 'Failed to log weight. Please try again.');
     }
   });
 
@@ -158,7 +139,7 @@ function Progress() {
     },
     onError: (error) => {
       console.error('Failed to delete weight log:', error);
-      alert('Failed to delete weight log. Please try again.');
+      toast.error(error?.response?.data?.detail || 'Failed to delete weight log. Please try again.');
       setDeletingLogId(null);
     }
   });
@@ -190,7 +171,6 @@ function Progress() {
 
   if (historyError || summaryError) {
     const error = historyError || summaryError;
-    const errorDetails = error?.response?.data?.error;
 
     return (
       <div>
@@ -202,22 +182,14 @@ function Progress() {
           <p className="text-gray-600 mt-2">View your weight trends and fitness analytics</p>
         </div>
 
-        <div className="bg-red-50 border border-red-200 rounded-lg p-6">
-          <div className="text-red-600 text-xl mb-2">⚠️ Error Loading Data</div>
-          <p className="text-red-800 font-semibold">
-            {errorDetails?.message || error?.message || 'Failed to load progress data'}
-          </p>
-          
-          <button
-            onClick={() => {
-              queryClient.invalidateQueries({ queryKey: PROGRESS_QUERY_KEYS.weightHistory });
-              queryClient.invalidateQueries({ queryKey: PROGRESS_QUERY_KEYS.weeklySummary });
-            }}
-            className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
-          >
-            Retry
-          </button>
-        </div>
+        <ErrorState
+          title="Error loading progress data"
+          error={error}
+          onRetry={() => {
+            queryClient.invalidateQueries({ queryKey: PROGRESS_QUERY_KEYS.weightHistory });
+            queryClient.invalidateQueries({ queryKey: PROGRESS_QUERY_KEYS.weeklySummary });
+          }}
+        />
       </div>
     );
   }
@@ -294,7 +266,7 @@ function Progress() {
       </div>
 
       {/* Helpful Tips Section */}
-      <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-6">
+      <Card className="border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50">
         <h3 className="text-lg font-semibold text-blue-900 mb-4 flex items-center">
           <span className="mr-2">💡</span>
           Weight Tracking Best Practices
@@ -329,7 +301,7 @@ function Progress() {
             </div>
           </div>
         </div>
-      </div>
+      </Card>
     </div>
   );
 }

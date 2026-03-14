@@ -1,4 +1,5 @@
 import FoodItemCard from './FoodItemCard';
+import { ErrorState, Skeleton } from '../ui';
 
 /**
  * FoodSearchResults Component
@@ -11,14 +12,20 @@ import FoodItemCard from './FoodItemCard';
  * - isError: Boolean for error state
  * - onSelectFood: Function called when user selects a food
  */
-function FoodSearchResults({ foods = [], isLoading, isError, onSelectFood }) {
+function FoodSearchResults({ foods = [], isLoading, isError, error, onSelectFood }) {
   // Loading State
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mb-4"></div>
-          <p className="text-gray-600">Searching for foods...</p>
+      <div className="py-4">
+        <div className="mb-4 text-sm font-medium text-slate-600">Searching for foods...</div>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          {[...Array(4)].map((_, index) => (
+            <div key={index} className="rounded-xl border border-slate-200 bg-white p-4">
+              <Skeleton className="mb-3 h-5 w-1/2" />
+              <Skeleton className="mb-2 h-4 w-2/3" />
+              <Skeleton className="h-4 w-1/3" />
+            </div>
+          ))}
         </div>
       </div>
     );
@@ -26,17 +33,7 @@ function FoodSearchResults({ foods = [], isLoading, isError, onSelectFood }) {
 
   // Error State
   if (isError) {
-    return (
-      <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
-        <div className="text-4xl mb-3">⚠️</div>
-        <h3 className="text-lg font-semibold text-red-800 mb-2">
-          Error Loading Foods
-        </h3>
-        <p className="text-red-600">
-          Unable to search foods. Please try again.
-        </p>
-      </div>
-    );
+    return <ErrorState title="Error loading foods" error={error} />;
   }
 
   // No Results State

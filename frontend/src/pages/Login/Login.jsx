@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
+import { toast } from 'react-hot-toast';
 import useAuthStore from '../../store/authStore';
 import authService from '../../services/authService';
 import { isValidEmail, parseErrorMessage } from '../../utils/validation';
@@ -42,6 +43,7 @@ function Login() {
       const userData = await authService.getCurrentUser();
       setAuth(userData, access_token, refresh_token);
       setIsSuccess(true);
+      toast.success('Login successful. Welcome back!');
       setTimeout(() => navigate('/dashboard'), 1500);
     } catch (err) {
       console.error('Login error:', err);

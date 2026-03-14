@@ -1,7 +1,10 @@
-import React from 'react';
+import { memo, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getConsistencyAnalytics, PROGRESS_QUERY_KEYS } from '../../services/progressService';
 import ConsistencyCard from './ConsistencyCard';
+import ConsistencyOverviewHeader from './ConsistencyOverviewHeader';
+import ConsistencyOverviewInsights from './ConsistencyOverviewInsights';
+import { Card, ErrorState, Loader } from '../ui';
 
 /**
  * ConsistencyOverview Component (Day 11)
@@ -36,89 +39,44 @@ import ConsistencyCard from './ConsistencyCard';
  */
 
 function ConsistencyOverview({ days = 30 }) {
-  console.log('📊 ConsistencyOverview rendering...');
-
-  /**
-   * Fetch consistency analytics with React Query
-   * 
-   * Benefits:
-   * - Automatic caching (staleTime: 5 minutes)
-   * - Background refetching when window refocuses
-   * - Automatic retry on network errors
-   * - Built-in loading/error states
-   */
-  const { 
-    data: consistencyData, 
-    isLoading, 
-    isError, 
-    error 
+  const {
+    data: consistencyData,
+    isLoading,
+    isError,
+    error,
+    refetch
   } = useQuery({
     queryKey: PROGRESS_QUERY_KEYS.consistency(days),
     queryFn: () => getConsistencyAnalytics(days),
-    staleTime: 5 * 60 * 1000, // 5 minutes - analytics don't change rapidly
-    refetchOnWindowFocus: true, // Refresh when user returns to app
+    staleTime: 10 * 60 * 1000,
+    gcTime: 20 * 60 * 1000,
+    refetchOnWindowFocus: false,
   });
 
-  /**
-   * Calculate overall consistency percentage
-   * Average across all categories
-   */
-  const calculateOverallConsistency = () => {
-    if (!consistencyData) return 0;
-    
-    const categories = [
-      consistencyData.food_logging,
-      consistencyData.workout_logging,
-      consistencyData.hydration_logging,
-      consistencyData.weight_logging
-    ];
+  const categoryConfigs = useMemo(() => ([
+    { key: 'food_logging', title: 'Food Logging', icon: '🍽️' },
+    { key: 'workout_logging', title: 'Workout Logging', icon: '💪' },
+    { key: 'hydration_logging', title: 'Hydration Logging', icon: '💧' },
+    { key: 'weight_logging', title: 'Weight Logging', icon: '⚖️' }
+  ]), []);
 
-    const sum = categories.reduce((acc, cat) => acc + (cat?.consistency_percentage || 0), 0);
-    return sum / categories.length;
-  };
-
-  /**
-   * Category configurations
-   * Maps backend data to UI presentation
-   */
-  const categoryConfigs = [
-    {
-      key: 'food_logging',
-      title: 'Food Logging',
-      icon: '🍽️',
-      description: 'Track your daily nutrition'
-    },
-    {
-      key: 'workout_logging',
-      title: 'Workout Logging',
-      icon: '💪',
-      description: 'Record your exercise sessions'
-    },
-    {
-      key: 'hydration_logging',
-      title: 'Hydration Logging',
-      icon: '💧',
-      description: 'Monitor your water intake'
-    },
-    {
-      key: 'weight_logging',
-      title: 'Weight Logging',
-      icon: '⚖️',
-      description: 'Track your body weight'
+  const overallConsistency = useMemo(() => {
+    if (!consistencyData) {
+      return 0;
     }
-  ];
+
+    const values = categoryConfigs.map((config) => consistencyData?.[config.key]?.consistency_percentage || 0);
+    return values.reduce((sum, value) => sum + value, 0) / values.length;
+  }, [categoryConfigs, consistencyData]);
 
   // ========================================
   // LOADING STATE
   // ========================================
   if (isLoading) {
     return (
-      <div className="bg-white rounded-lg shadow-md p-8">
-        <div className="flex items-center justify-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-          <span className="ml-4 text-gray-600">Loading consistency analytics...</span>
-        </div>
-      </div>
+      <Card>
+        <Loader label="Loading consistency analytics..." />
+      </Card>
     );
   }
 
@@ -126,55 +84,15 @@ function ConsistencyOverview({ days = 30 }) {
   // ERROR STATE
   // ========================================
   if (isError) {
-    return (
-      <div className="bg-red-50 border-2 border-red-200 rounded-lg p-6">
-        <div className="flex items-center gap-3 mb-3">
-          <span className="text-3xl">⚠️</span>
-          <h3 className="text-lg font-semibold text-red-800">Failed to Load Analytics</h3>
-        </div>
-        <p className="text-red-700 mb-2">
-          {error?.response?.data?.detail || error?.message || 'Unable to fetch consistency data'}
-        </p>
-        <button 
-          onClick={() => window.location.reload()}
-          className="mt-3 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
-        >
-          Retry
-        </button>
-      </div>
-    );
+    return <ErrorState title="Failed to load analytics" error={error} onRetry={() => refetch()} />;
   }
-
-  const overallConsistency = calculateOverallConsistency();
 
   // ========================================
   // SUCCESS STATE - DISPLAY ANALYTICS
   // ========================================
   return (
     <div className="space-y-6">
-      {/* Header Section */}
-      <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg shadow-lg p-6 text-white">
-        <h2 className="text-2xl font-bold mb-2">📊 Consistency Analytics</h2>
-        <p className="text-blue-100 mb-4">
-          Track your health tracking consistency over the last {days} days
-        </p>
-        
-        {/* Overall Consistency Score */}
-        <div className="bg-white/10 backdrop-blur rounded-lg p-4 border border-white/20">
-          <p className="text-sm text-blue-100 mb-1">Overall Consistency</p>
-          <div className="flex items-center gap-4">
-            <div className="text-4xl font-bold">{overallConsistency.toFixed(1)}%</div>
-            <div className="flex-1">
-              <div className="w-full bg-white/20 rounded-full h-4 overflow-hidden">
-                <div 
-                  className="h-full bg-white transition-all duration-700 ease-out"
-                  style={{ width: `${overallConsistency}%` }}
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <ConsistencyOverviewHeader days={days} overallConsistency={overallConsistency} />
 
       {/* Category Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -202,22 +120,9 @@ function ConsistencyOverview({ days = 30 }) {
         })}
       </div>
 
-      {/* Insights Section */}
-      <div className="bg-yellow-50 border-2 border-yellow-200 rounded-lg p-6">
-        <div className="flex items-start gap-3">
-          <span className="text-2xl">💡</span>
-          <div>
-            <h3 className="font-semibold text-yellow-900 mb-2">Why Consistency Matters</h3>
-            <p className="text-sm text-yellow-800 leading-relaxed">
-              Research shows that consistent tracking increases health goal achievement by <strong>42%</strong>. 
-              Even imperfect tracking (70%+) is significantly better than sporadic tracking. 
-              Focus on maintaining streaks rather than perfection!
-            </p>
-          </div>
-        </div>
-      </div>
+      <ConsistencyOverviewInsights />
     </div>
   );
 }
 
-export default ConsistencyOverview;
+export default memo(ConsistencyOverview);

@@ -1,3 +1,7 @@
+import { memo } from 'react';
+import { motion } from 'framer-motion';
+import { Card } from '../ui';
+
 /**
  * CalorieCard Component
  * 
@@ -15,10 +19,10 @@ function CalorieCard({ calories }) {
   // Handle empty data
   if (!calories) {
     return (
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">🔥 Calories</h3>
+      <Card hoverable>
+        <h3 className="mb-4 text-lg font-semibold text-gray-800">Calorie Balance</h3>
         <p className="text-gray-500 text-sm">No calorie data available</p>
-      </div>
+      </Card>
     );
   }
 
@@ -33,9 +37,12 @@ function CalorieCard({ calories }) {
   const progressBarColor = isOverTarget ? 'bg-red-500' : 'bg-indigo-600';
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
+    <Card hoverable>
       {/* Header */}
-      <h3 className="text-lg font-semibold text-gray-800 mb-4">🔥 Calories</h3>
+      <div className="mb-4 flex items-center justify-between">
+        <h3 className="text-lg font-semibold text-gray-800">Calorie Balance</h3>
+        <span className="rounded-full bg-orange-100 px-2 py-1 text-xs font-semibold text-orange-700">🔥 Daily</span>
+      </div>
       
       {/* Main Stats */}
       <div className="space-y-3 mb-4">
@@ -59,18 +66,28 @@ function CalorieCard({ calories }) {
       
       {/* Progress Bar */}
       <div className="mt-4">
-        <div className="w-full bg-gray-200 rounded-full h-3">
-          <div
+        <div
+          className="w-full bg-gray-200 rounded-full h-3"
+          role="progressbar"
+          aria-label="Calorie goal progress"
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={Math.round(progressPercentage)}
+        >
+          <motion.div
             className={`${progressBarColor} h-3 rounded-full transition-all duration-500`}
+            initial={{ width: 0 }}
+            animate={{ width: `${progressPercentage}%` }}
+            transition={{ duration: 0.5, ease: 'easeOut' }}
             style={{ width: `${progressPercentage}%` }}
-          ></div>
+          />
         </div>
         <p className="text-xs text-gray-500 mt-2 text-center">
           {progressPercentage.toFixed(0)}% of daily goal
         </p>
       </div>
-    </div>
+    </Card>
   );
 }
 
-export default CalorieCard;
+export default memo(CalorieCard);

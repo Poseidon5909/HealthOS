@@ -1,6 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
+import { motion } from 'framer-motion';
 import useAuthStore from '../../store/authStore';
 import { getDashboardData, DASHBOARD_QUERY_KEY } from '../../services/dashboardService';
+import { Button, ErrorState, Skeleton } from '../../components/ui';
 
 // Import dashboard components
 import CalorieCard from '../../components/dashboard/CalorieCard';
@@ -25,6 +27,30 @@ import ConsistencyChart from '../../components/dashboard/ConsistencyChart';
 function Dashboard() {
   const { user } = useAuthStore();
 
+  const DashboardSkeleton = () => (
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {[...Array(3)].map((_, index) => (
+          <div key={`top-${index}`} className="rounded-2xl border border-slate-200 bg-white p-5">
+            <Skeleton className="mb-4 h-5 w-24" />
+            <Skeleton className="mb-3 h-10 w-28" />
+            <Skeleton className="h-3 w-full" />
+          </div>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {[...Array(3)].map((_, index) => (
+          <div key={`bottom-${index}`} className="rounded-2xl border border-slate-200 bg-white p-5">
+            <Skeleton className="mb-4 h-5 w-28" />
+            <Skeleton className="mb-2 h-6 w-16" />
+            <Skeleton className="h-3 w-3/4" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
   // Fetch dashboard data using React Query
   const {
     data: dashboardData,
@@ -35,10 +61,18 @@ function Dashboard() {
   } = useQuery({
     queryKey: DASHBOARD_QUERY_KEY,
     queryFn: getDashboardData,
-    staleTime: 5 * 60 * 1000, // Data stays fresh for 5 minutes
-    cacheTime: 10 * 60 * 1000, // Cache for 10 minutes
-    refetchOnWindowFocus: true, // Refetch when user returns to tab
+    staleTime: 3 * 60 * 1000,
+    gcTime: 12 * 60 * 1000,
+    refetchOnWindowFocus: false,
   });
+
+  const dashboardHighlights = dashboardData
+    ? [
+        { label: 'Calories', value: `${dashboardData?.calories?.consumed || 0} kcal` },
+        { label: 'Hydration', value: `${dashboardData?.hydration?.progress_percentage?.toFixed?.(0) || 0}%` },
+        { label: 'Workout', value: `${dashboardData?.workout?.duration_minutes || 0} min` }
+      ]
+    : [];
 
   return (
     <div>
@@ -50,33 +84,33 @@ function Dashboard() {
         </p>
       </div>
 
+      {!isLoading && !isError && dashboardData && (
+        <motion.section
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.2 }}
+          className="mb-6 rounded-2xl border border-indigo-200 bg-gradient-to-r from-indigo-600 via-indigo-600 to-sky-600 p-5 text-white"
+        >
+          <p className="text-sm text-indigo-100">Today at a glance</p>
+          <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
+            {dashboardHighlights.map((item) => (
+              <div key={item.label} className="rounded-xl border border-white/20 bg-white/10 p-3 backdrop-blur">
+                <p className="text-xs uppercase tracking-wide text-indigo-100">{item.label}</p>
+                <p className="mt-1 text-xl font-bold">{item.value}</p>
+              </div>
+            ))}
+          </div>
+        </motion.section>
+      )}
+
       {/* Loading State */}
       {isLoading && (
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="text-center">
-            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mb-4"></div>
-            <p className="text-gray-600">Loading your dashboard...</p>
-          </div>
-        </div>
+        <DashboardSkeleton />
       )}
 
       {/* Error State */}
       {isError && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
-          <div className="text-4xl mb-3">⚠️</div>
-          <h3 className="text-lg font-semibold text-red-800 mb-2">
-            Unable to Load Dashboard
-          </h3>
-          <p className="text-red-600 mb-4">
-            {error?.response?.data?.detail || error?.message || 'An error occurred'}
-          </p>
-          <button
-            onClick={() => refetch()}
-            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-          >
-            Try Again
-          </button>
-        </div>
+        <ErrorState title="Unable to load dashboard" error={error} onRetry={() => refetch()} />
       )}
 
       {/* Dashboard Content */}
@@ -98,12 +132,13 @@ function Dashboard() {
 
           {/* Refresh Indicator */}
           <div className="text-center mt-8">
-            <button
+            <Button
               onClick={() => refetch()}
-              className="text-sm text-indigo-600 hover:text-indigo-700 font-medium transition-colors"
+              variant="ghost"
+              size="sm"
             >
               🔄 Refresh Dashboard
-            </button>
+            </Button>
           </div>
         </div>
       )}

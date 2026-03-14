@@ -1,3 +1,6 @@
+import { memo } from 'react';
+import { Card } from '../ui';
+
 /**
  * WorkoutSummary Component
  * 
@@ -13,10 +16,10 @@ function WorkoutSummary({ workout }) {
   // Handle empty data
   if (!workout) {
     return (
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">💪 Workout</h3>
+      <Card hoverable>
+        <h3 className="text-lg font-semibold text-gray-800 mb-4">Workout</h3>
         <p className="text-gray-500 text-sm">No workout data available</p>
-      </div>
+      </Card>
     );
   }
 
@@ -36,9 +39,12 @@ function WorkoutSummary({ workout }) {
     : `${minutes}m`;
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
+    <Card hoverable>
       {/* Header */}
-      <h3 className="text-lg font-semibold text-gray-800 mb-4">💪 Workout</h3>
+      <div className="mb-4 flex items-center justify-between">
+        <h3 className="text-lg font-semibold text-gray-800">Workout</h3>
+        <span className="rounded-full bg-orange-100 px-2 py-1 text-xs font-semibold text-orange-700">💪 Activity</span>
+      </div>
       
       {hasWorkedOut ? (
         <>
@@ -80,8 +86,8 @@ function WorkoutSummary({ workout }) {
           <p className="text-gray-500 text-xs mt-2">Time to get moving!</p>
         </div>
       )}
-    </div>
+    </Card>
   );
 }
 
-export default WorkoutSummary;
+export default memo(WorkoutSummary);

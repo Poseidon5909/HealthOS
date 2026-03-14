@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Button, Input } from '../ui';
 
 /**
  * FoodSearchBar Component
@@ -26,6 +27,9 @@ function FoodSearchBar({ onSearch, isLoading = false }) {
 
   return (
     <form onSubmit={handleSubmit} className="mb-6">
+      <label htmlFor="food-search-input" className="mb-2 block text-sm font-medium text-slate-700">
+        Search food database
+      </label>
       <div className="relative">
         {/* Search Icon */}
         <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
@@ -45,13 +49,15 @@ function FoodSearchBar({ onSearch, isLoading = false }) {
         </div>
 
         {/* Search Input */}
-        <input
+        <Input
+          id="food-search-input"
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Search for foods... (e.g., chicken, rice, apple)"
-          className="w-full pl-12 pr-24 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+          className="h-12 w-full pl-12 pr-28"
           disabled={isLoading}
+          aria-label="Search foods"
         />
 
         {/* Action Buttons */}
@@ -62,6 +68,7 @@ function FoodSearchBar({ onSearch, isLoading = false }) {
               onClick={handleClear}
               className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
               disabled={isLoading}
+              aria-label="Clear search query"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -69,20 +76,14 @@ function FoodSearchBar({ onSearch, isLoading = false }) {
             </button>
           )}
 
-          <button
+          <Button
             type="submit"
             disabled={!searchQuery.trim() || isLoading}
-            className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            size="sm"
+            isLoading={isLoading}
           >
-            {isLoading ? (
-              <div className="flex items-center space-x-2">
-                <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
-                <span>Searching...</span>
-              </div>
-            ) : (
-              'Search'
-            )}
-          </button>
+            Search
+          </Button>
         </div>
       </div>
 

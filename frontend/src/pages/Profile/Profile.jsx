@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'react-hot-toast';
 import useAuthStore from '../../store/authStore';
 import {
   changeCurrentUserPassword,
@@ -14,6 +15,7 @@ import ProfileCard from '../../components/profile/ProfileCard';
 import ProfileEditForm from '../../components/profile/ProfileEditForm';
 import ChangePasswordForm from '../../components/profile/ChangePasswordForm';
 import AccountActions from '../../components/profile/AccountActions';
+import { ErrorState, Loader } from '../../components/ui';
 
 function Profile() {
   const queryClient = useQueryClient();
@@ -45,42 +47,42 @@ function Profile() {
       setUser(updatedProfile);
       queryClient.setQueryData(PROFILE_QUERY_KEY, updatedProfile);
       await queryClient.invalidateQueries({ queryKey: PROFILE_QUERY_KEY });
-      alert('Profile updated successfully.');
+      toast.success('Profile updated successfully');
     },
     onError: (mutationError) => {
-      alert(parseErrorMessage(mutationError));
+      toast.error(parseErrorMessage(mutationError));
     },
   });
 
   const changePasswordMutation = useMutation({
     mutationFn: changeCurrentUserPassword,
     onSuccess: (response) => {
-      alert(response?.message || 'Password changed successfully.');
+      toast.success(response?.message || 'Password changed successfully');
     },
     onError: (mutationError) => {
-      alert(parseErrorMessage(mutationError));
+      toast.error(parseErrorMessage(mutationError));
     },
   });
 
   const deactivateAccountMutation = useMutation({
     mutationFn: deactivateCurrentUserAccount,
     onSuccess: (response) => {
-      alert(response?.message || 'Account deactivated successfully.');
+      toast.success(response?.message || 'Account deactivated successfully');
       logout();
     },
     onError: (mutationError) => {
-      alert(parseErrorMessage(mutationError));
+      toast.error(parseErrorMessage(mutationError));
     },
   });
 
   const deleteAccountMutation = useMutation({
     mutationFn: deleteCurrentUserAccount,
     onSuccess: (response) => {
-      alert(response?.message || 'Account deleted successfully.');
+      toast.success(response?.message || 'Account deleted successfully');
       logout();
     },
     onError: (mutationError) => {
-      alert(parseErrorMessage(mutationError));
+      toast.error(parseErrorMessage(mutationError));
     },
   });
 
@@ -118,28 +120,12 @@ function Profile() {
 
       {isLoading && (
         <div className="flex items-center justify-center min-h-[320px] rounded-2xl border border-slate-200 bg-white shadow-sm">
-          <div className="text-center">
-            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-sky-600 mb-4"></div>
-            <p className="text-slate-600">Loading your profile...</p>
-          </div>
+          <Loader label="Loading your profile..." />
         </div>
       )}
 
       {isError && (
-        <div className="rounded-2xl border border-rose-200 bg-rose-50 p-6 text-center">
-          <div className="text-4xl mb-3">⚠️</div>
-          <h2 className="text-lg font-semibold text-rose-900">Unable to load your profile</h2>
-          <p className="text-sm text-rose-700 mt-2">
-            {error?.response?.data?.detail || error?.message || 'An unexpected error occurred.'}
-          </p>
-          <button
-            type="button"
-            onClick={() => refetch()}
-            className="mt-4 inline-flex items-center justify-center rounded-xl bg-rose-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-rose-700"
-          >
-            Retry
-          </button>
-        </div>
+        <ErrorState title="Unable to load your profile" error={error} onRetry={() => refetch()} />
       )}
 
       {!isLoading && !isError && profile && (

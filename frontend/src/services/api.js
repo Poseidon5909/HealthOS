@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { toast } from 'react-hot-toast';
 
 /**
  * API Configuration
@@ -91,6 +92,7 @@ api.interceptors.response.use(
         console.error('❌ Token refresh failed:', refreshError.message);
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
+        toast.error('Session expired. Please log in again.');
         window.location.href = '/login';
         return Promise.reject(refreshError);
       }

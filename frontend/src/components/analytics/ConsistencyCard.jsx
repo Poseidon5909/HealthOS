@@ -1,4 +1,4 @@
-import React from 'react';
+import { memo } from 'react';
 import ConsistencyChart from './ConsistencyChart';
 
 /**
@@ -96,7 +96,14 @@ function ConsistencyCard({
 
       {/* Visual progress bar */}
       <div className="mb-4">
-        <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+        <div
+          className="w-full bg-gray-200 rounded-full h-3 overflow-hidden"
+          role="progressbar"
+          aria-label={`${title} consistency`}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={Math.round(percentage)}
+        >
           <div 
             className={`h-full ${getProgressBarColor()} transition-all duration-500 ease-out`}
             style={{ width: `${percentage}%` }}
@@ -118,4 +125,4 @@ function ConsistencyCard({
   );
 }
 
-export default ConsistencyCard;
+export default memo(ConsistencyCard);

@@ -1,3 +1,6 @@
+import { motion } from 'framer-motion';
+import { useLocation } from 'react-router-dom';
+
 /**
  * PageContainer Component
  * 
@@ -21,12 +24,19 @@
  * </PageContainer>
  */
 function PageContainer({ children, maxWidth = '7xl' }) {
+  const location = useLocation();
   const maxWidthClass = `max-w-${maxWidth}`;
   
   return (
-    <div className={`${maxWidthClass} mx-auto px-4 sm:px-6 lg:px-8 py-8`}>
+    <motion.div
+      key={location.pathname}
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.2, ease: 'easeOut' }}
+      className={`${maxWidthClass} mx-auto px-4 sm:px-6 lg:px-8 py-8`}
+    >
       {children}
-    </div>
+    </motion.div>
   );
 }
 
