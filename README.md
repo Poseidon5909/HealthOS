@@ -1,240 +1,231 @@
 # HealthOS
 
-A comprehensive health tracking API built with FastAPI, featuring food logging, workout tracking, hydration monitoring, weight progress, and habit tracking.
+HealthOS is a full-stack health tracking platform with a FastAPI backend and a React + Vite frontend.
 
-## 🚀 Features
+It helps users track:
+- nutrition and food logs
+- hydration
+- workouts and calories burned
+- weight progress
+- habits and consistency
+- dashboard analytics
 
-- **User Management**: Registration, authentication, profile management, account deactivation
-- **Food Tracking**: Log meals, track calories and macronutrients, search food database
-- **Workout Logging**: Track exercises, calculate calories burned, view workout history
-- **Hydration Monitoring**: Log water intake, view daily hydration progress
-- **Weight Progress**: Track weight changes, view trends and consistency
-- **Habit Tracking**: Monitor daily habits, track streaks and completion rates
-- **Dashboard**: Comprehensive overview of all health metrics
+## Architecture
 
-## 🔒 Security Features
+### Backend service
+- Stack: FastAPI, SQLAlchemy, Pydantic, JWT, SlowAPI rate limiting
+- Location: `backend/`
+- Entry point: `backend/app/main.py`
+- Default URL: `http://localhost:8000`
+- API prefix: `/api/v1`
 
-### Authentication & Authorization
-- **JWT-based authentication** with access and refresh tokens
-- **Access tokens**: Short-lived (30 minutes) for API requests
-- **Refresh tokens**: Long-lived (7 days) for obtaining new access tokens
-- **Token type validation**: Ensures correct token usage across endpoints
-- **Argon2** password hashing (industry-standard, memory-hard algorithm)
-- **Password strength validation**: Requires 8+ characters, uppercase, lowercase, digit, special character
+### Frontend service
+- Stack: React, Vite, Tailwind, React Query, Axios, Zustand
+- Location: `frontend/`
+- Default URL: `http://localhost:5173`
+- API base URL config: `VITE_API_URL` (defaults to `http://localhost:8000/api/v1`)
 
-### Rate Limiting
-Prevents abuse and brute force attacks:
-- **Login**: 5 attempts/minute
-- **Token refresh**: 10 attempts/minute
-- **User registration**: 3 registrations/hour
-- **Password change**: 5 attempts/hour
-- **Account deactivation**: 2 attempts/day
-- **Account deletion**: 1 attempt/day
-- **General endpoints**: 60 requests/minute
+## Repository layout
 
-### Security Headers
-- **X-Content-Type-Options**: nosniff
-- **X-Frame-Options**: DENY
-- **X-XSS-Protection**: 1; mode=block
-- **Strict-Transport-Security**: max-age=31536000; includeSubDomains
+```text
+HealthOS/
+  backend/
+    app/
+      main.py
+      api/
+      core/
+      models/
+      schemas/
+      services/
+    .env
+    healthos.db
+  frontend/
+    src/
+    package.json
+  .env.example
+  requirements.txt
+  package.json
+```
 
-### CORS
-- Configurable allowed origins (defaults to localhost:3000, localhost:8000)
-- Credentials support enabled
-- All methods and headers allowed for development
+## Prerequisites
 
-### Data Validation
-- **Pydantic schemas** with comprehensive Field constraints
-- **Business logic validation** in service layer
-- **Realistic constraints**: Weight 20-500kg, calories max 10k, water max 5L, workout max 12hrs
-- **Future date prevention** for historical data
-- **Email uniqueness** enforcement
-- **Account status checks**: Deactivated users cannot authenticate
+- Python 3.10+
+- Node.js 18+
+- npm 9+
 
-## 🛠️ Tech Stack
+## Quick start
 
-- **FastAPI** 0.129.0 - Modern web framework
-- **SQLAlchemy** 2.0.46 - ORM
-- **PostgreSQL** - Database (via psycopg2-binary)
-- **Pydantic** 2.12.5 - Data validation
-- **python-jose** - JWT token handling
-- **argon2-cffi** 23.1.0 - Password hashing
-- **slowapi** 0.1.9 - Rate limiting
-- **passlib** - Password utilities
-- **Uvicorn** - ASGI server
+### 1) Clone and enter project
 
-## 📦 Installation
-
-1. Clone the repository:
 ```bash
 git clone https://github.com/yourusername/HealthOS.git
 cd HealthOS
 ```
 
-2. Create virtual environment:
+### 2) Backend setup
+
+Create and activate a virtual environment:
+
 ```bash
 python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+# Windows PowerShell
+venv\Scripts\Activate.ps1
+# macOS/Linux
+source venv/bin/activate
 ```
 
-3. Install dependencies:
+Install backend dependencies:
+
 ```bash
 pip install -r requirements.txt
 ```
 
-4. Configure environment:
+Create backend environment file:
+
 ```bash
-cp .env.example .env
-# Edit .env with your configuration
+copy .env.example backend\.env
 ```
 
-5. Generate a secure SECRET_KEY:
+Edit `backend/.env` and set real values for:
+- `DATABASE_URL`
+- `SECRET_KEY`
+- `ALGORITHM`
+- token settings and optional SMTP / Google OAuth settings
+
+Generate a secure secret key:
+
 ```bash
 openssl rand -hex 32
 ```
 
-6. Run the application:
+Run backend:
+
 ```bash
+cd backend
 uvicorn app.main:app --reload
 ```
 
-## 🔑 API Endpoints
+Backend URLs:
+- API root: `http://localhost:8000`
+- Swagger docs: `http://localhost:8000/docs`
 
-### Authentication
-- `POST /auth/login` - Login with email/password (returns access + refresh tokens)
-- `POST /auth/refresh` - Refresh access token using refresh token
-- `GET /auth/protected` - Example protected endpoint
+### 3) Frontend setup
 
-### User Management
-- `POST /users/` - Register new user
-- `GET /users/me` - Get current user profile
-- `PUT /users/me` - Update profile (name/email)
-- `POST /users/me/change-password` - Change password
-- `POST /users/me/verify-email` - Verify email address
-- `POST /users/me/deactivate` - Deactivate account (soft delete)
-- `DELETE /users/me` - Delete account permanently
+In a new terminal:
 
-### Food Tracking
-- `POST /food-logs/` - Log food consumption
-- `GET /food-logs/history` - Get food log history (with date filters & pagination)
-- `GET /food-logs/{id}` - Get specific food log
-- `PUT /food-logs/{id}` - Update food log
-- `DELETE /food-logs/{id}` - Delete food log
-- `GET /foods/` - Search food database
-- `GET /nutrition/analysis` - Get nutrition analysis
-
-### Workout Tracking
-- `POST /workouts/` - Log workout
-- `GET /workouts/history` - Get workout history (with filters)
-- `GET /workouts/{id}` - Get specific workout
-- `PUT /workouts/{id}` - Update workout
-- `DELETE /workouts/{id}` - Delete workout
-- `GET /exercises/` - Search exercise database
-
-### Hydration
-- `POST /hydration/` - Log water intake
-- `GET /hydration/summary` - Daily hydration summary
-- `GET /hydration/history` - Hydration history
-- `DELETE /hydration/{id}` - Delete water log
-
-### Progress Tracking
-- `POST /progress/weight` - Log weight
-- `GET /progress/weight` - Get weight history
-- `GET /progress/consistency` - Get consistency metrics
-- `PUT /progress/weight/{id}` - Update weight log
-- `DELETE /progress/weight/{id}` - Delete weight log
-
-### Habits
-- `POST /habits/` - Log habit completion
-- `GET /habits/status` - Get habit status
-- `GET /habits/streaks` - Get habit streaks
-
-### Dashboard
-- `GET /dashboard/` - Get comprehensive health dashboard
-
-## 📊 Token Usage
-
-### Login Flow
 ```bash
-# 1. Login
-curl -X POST "http://localhost:8000/auth/login" \
-  -H "Content-Type: application/x-www-form-urlencoded" \
-  -d "username=user@example.com&password=SecurePass123!"
-
-# Response:
-{
-  "access_token": "eyJ...",
-  "refresh_token": "eyJ...",
-  "token_type": "bearer",
-  "expires_in": 30
-}
-
-# 2. Use access token for API requests
-curl -X GET "http://localhost:8000/users/me" \
-  -H "Authorization: Bearer eyJ..."
-
-# 3. Refresh token when access token expires
-curl -X POST "http://localhost:8000/auth/refresh" \
-  -H "Content-Type: application/json" \
-  -d '{"refresh_token": "eyJ..."}'
+cd frontend
+npm install
+npm run dev
 ```
 
-## 🔧 Configuration
+Frontend URL:
+- App: `http://localhost:5173`
 
-Key environment variables in `.env`:
+If needed, create `frontend/.env` and set:
 
 ```env
-# Token expiration
-ACCESS_TOKEN_EXPIRE_MINUTES=30  # Short-lived access tokens
-REFRESH_TOKEN_EXPIRE_DAYS=7     # Long-lived refresh tokens
-
-# Rate limiting
-RATE_LIMIT_PER_MINUTE=60
-
-# CORS
-CORS_ORIGINS=["http://localhost:3000","http://localhost:8000"]
+VITE_API_URL=http://localhost:8000/api/v1
 ```
 
-## 🛡️ Best Practices
+## Running both services from root
 
-1. **Never commit .env** - Contains sensitive credentials
-2. **Use refresh tokens** - Reduces authentication overhead
-3. **Rotate secrets regularly** - Generate new SECRET_KEY periodically
-4. **Monitor rate limits** - Adjust based on legitimate usage patterns
-5. **Use HTTPS in production** - Never send tokens over unencrypted connections
-6. **Validate all inputs** - Trust nothing from client
-7. **Log security events** - Track failed login attempts, token refresh patterns
+Install frontend dependencies once:
 
-## 📝 Development
-
-### Database Migration
 ```bash
-# Create tables
-python -c "from app.core.database import Base, engine; Base.metadata.create_all(bind=engine)"
+cd frontend
+npm install
+cd ..
 ```
 
-### Running Tests
+From project root, run frontend via workspace scripts:
+
 ```bash
-pytest
+npm run dev
 ```
 
-### API Documentation
-Visit `http://localhost:8000/docs` for interactive Swagger UI documentation.
+Run backend in a second terminal:
 
-## 🤝 Contributing
+```bash
+cd backend
+uvicorn app.main:app --reload
+```
 
-1. Fork the repository
-2. Create feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to branch (`git push origin feature/AmazingFeature`)
-5. Open Pull Request
+## Environment configuration
 
-## 📄 License
+Main environment file:
+- `backend/.env`
 
-This project is licensed under the MIT License.
+Template:
+- `.env.example`
 
-## 👤 Author
+Important keys used by backend:
+- `APP_NAME`
+- `DEBUG`
+- `DATABASE_URL`
+- `SECRET_KEY`
+- `ALGORITHM`
+- `ACCESS_TOKEN_EXPIRE_MINUTES`
+- `REFRESH_TOKEN_EXPIRE_DAYS`
+- `CORS_ORIGINS`
+- `RATE_LIMIT_PER_MINUTE`
+- `SMTP_*`
+- `FRONTEND_URL`
+- `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI`
 
-Your Name - [@yourhandle](https://twitter.com/yourhandle)
+## Available scripts
 
-Project Link: [https://github.com/yourusername/HealthOS](https://github.com/yourusername/HealthOS)
+### Root
+- `npm run dev` -> runs frontend dev server
+- `npm run build` -> builds frontend
+- `npm run preview` -> previews frontend build
+
+### Frontend (`frontend/package.json`)
+- `npm run dev`
+- `npm run build`
+- `npm run preview`
+
+### Backend
+- Dev server: `uvicorn app.main:app --reload`
+
+## Backend API coverage
+
+Implemented modules include:
+- authentication and token refresh
+- users and profile
+- food logs and nutrition analysis
+- hydration logs
+- workouts and exercises
+- weight progress and consistency
+- habit tracking
+- dashboard aggregation
+
+All endpoints are under `/api/v1`.
+
+## Security highlights
+
+- JWT access + refresh token flow
+- Argon2 password hashing
+- request rate limiting by endpoint
+- validation with Pydantic schemas and service-layer checks
+- CORS and basic security headers middleware
+
+## Development notes
+
+- Canonical backend environment location: `backend/.env`
+- Canonical SQLite location (if used): `backend/healthos.db`
+- Keep backend and frontend running together for full functionality
+
+## Troubleshooting
+
+- Frontend cannot reach API:
+  - ensure backend is running on `http://localhost:8000`
+  - check `VITE_API_URL` value
+- CORS errors:
+  - update `CORS_ORIGINS` in `backend/.env`
+- Auth issues after long idle time:
+  - sign in again if refresh token has expired
+
+## License
+
+MIT
