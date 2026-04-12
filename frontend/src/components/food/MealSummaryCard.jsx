@@ -1,3 +1,5 @@
+﻿import { BarChart3 } from 'lucide-react';
+
 /**
  * MealSummaryCard Component
  * 
@@ -6,7 +8,6 @@
  * Updates automatically after adding/editing/deleting food logs
  */
 function MealSummaryCard({ mealType, summary }) {
-  // Default values if no summary data
   const {
     total_calories = 0,
     total_protein = 0,
@@ -15,7 +16,6 @@ function MealSummaryCard({ mealType, summary }) {
     count = 0
   } = summary || {};
 
-  // No data - show empty state
   if (count === 0) {
     return (
       <div className="bg-gray-50 rounded-lg p-4 mb-4 border-2 border-dashed border-gray-200">
@@ -28,17 +28,15 @@ function MealSummaryCard({ mealType, summary }) {
 
   return (
     <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg p-4 mb-4 border border-indigo-100">
-      {/* Header */}
       <div className="flex items-center justify-between mb-3">
-        <h4 className="text-sm font-semibold text-gray-700">
-          📊 Meal Summary
+        <h4 className="text-sm font-semibold text-gray-700 inline-flex items-center gap-1">
+          <BarChart3 size={14} /> Meal Summary
         </h4>
         <span className="text-xs text-gray-600 bg-white px-2 py-1 rounded-full">
           {count} {count === 1 ? 'item' : 'items'}
         </span>
       </div>
 
-      {/* Calories - Large Display */}
       <div className="mb-3">
         <div className="flex items-baseline">
           <span className="text-3xl font-bold text-indigo-600">
@@ -48,9 +46,7 @@ function MealSummaryCard({ mealType, summary }) {
         </div>
       </div>
 
-      {/* Macros Grid */}
       <div className="grid grid-cols-3 gap-2">
-        {/* Protein */}
         <div className="bg-white rounded-lg p-2 text-center">
           <div className="text-xs text-gray-600 mb-1">Protein</div>
           <div className="text-lg font-bold text-blue-600">
@@ -58,7 +54,6 @@ function MealSummaryCard({ mealType, summary }) {
           </div>
         </div>
 
-        {/* Carbs */}
         <div className="bg-white rounded-lg p-2 text-center">
           <div className="text-xs text-gray-600 mb-1">Carbs</div>
           <div className="text-lg font-bold text-yellow-600">
@@ -66,7 +61,6 @@ function MealSummaryCard({ mealType, summary }) {
           </div>
         </div>
 
-        {/* Fat */}
         <div className="bg-white rounded-lg p-2 text-center">
           <div className="text-xs text-gray-600 mb-1">Fat</div>
           <div className="text-lg font-bold text-green-600">

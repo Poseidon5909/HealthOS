@@ -12,9 +12,6 @@ from typing import Optional
 
 class ProgressService:
 
-    # -------------------------
-    # Weight Logging
-    # -------------------------
     @staticmethod
     def log_weight(db: Session, user_id: int, weight: float):
 
@@ -71,10 +68,8 @@ class ProgressService:
         if end_date:
             query = query.filter(WeightLog.date <= end_date)
         
-        # Get total count
         total = query.count()
         
-        # Apply pagination and ordering
         items = query.order_by(WeightLog.date.desc())\
                     .offset(skip)\
                     .limit(limit)\
@@ -144,9 +139,6 @@ class ProgressService:
         
         return {"message": "Weight log deleted successfully"}
 
-    # -------------------------
-    # Weekly Weight Change
-    # -------------------------
     @staticmethod
     def get_weekly_weight_change(db: Session, user_id: int):
 
@@ -178,9 +170,6 @@ class ProgressService:
             "weekly_change": round(weekly_change, 2)
         }
 
-    # -------------------------
-    # Consistency Metrics
-    # -------------------------
     @staticmethod
     def get_consistency_summary(db: Session, user_id: int):
 
@@ -197,7 +186,6 @@ class ProgressService:
         calorie_target = target.calorie_target
         water_target = target.water_target
 
-        # --- Macro consistency ---
         food_days = db.query(FoodLog.date)\
             .filter(
                 FoodLog.user_id == user_id,
@@ -225,7 +213,6 @@ class ProgressService:
 
         macro_consistency = (macro_consistent_days / 7) * 100
 
-        # --- Workout consistency ---
         workout_days = db.query(WorkoutLog.date)\
             .filter(
                 WorkoutLog.user_id == user_id,
@@ -236,7 +223,6 @@ class ProgressService:
 
         workout_consistency = (workout_days / 7) * 100
 
-        # --- Hydration consistency ---
         water_days = db.query(WaterLog.date)\
             .filter(
                 WaterLog.user_id == user_id,

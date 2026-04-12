@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'react-hot-toast';
 import {
   getTodayHabitStatus,
   getHabitStreaks,
@@ -11,10 +12,9 @@ import {
 import HabitStatusCard from '../../components/habits/HabitStatusCard';
 import HabitStreakCard from '../../components/habits/HabitStreakCard';
 import HabitHistoryList from '../../components/habits/HabitHistoryList';
+import { ICON_EMOJIS } from '../../constants/icons';
 
 function Habits() {
-  console.log('🎯 Habits component rendering...');
-  
   const queryClient = useQueryClient();
   const [deletingLogId, setDeletingLogId] = useState(null);
 
@@ -25,10 +25,9 @@ function Habits() {
   } = useQuery({
     queryKey: HABIT_QUERY_KEYS.todayStatus,
     queryFn: getTodayHabitStatus,
+    staleTime: 0,
+    refetchOnMount: 'always',
     retry: false,
-    onError: (error) => {
-      console.error('❌ Today Status Error:', error.message);
-    }
   });
 
   const {
@@ -38,10 +37,9 @@ function Habits() {
   } = useQuery({
     queryKey: HABIT_QUERY_KEYS.streaks,
     queryFn: getHabitStreaks,
+    staleTime: 0,
+    refetchOnMount: 'always',
     retry: false,
-    onError: (error) => {
-      console.error('❌ Streaks Error:', error.message);
-    }
   });
 
   const {
@@ -52,10 +50,9 @@ function Habits() {
     queryKey: HABIT_QUERY_KEYS.history(0, 50),
     queryFn: () => getHabitHistory(0, 50),
     retry: false,
-    onError: (error) => {
-      console.error('❌ History Error:', error.message);
-    }
   });
+
+  const historyEntries = Array.isArray(history) ? history : [];
 
   const deleteHabitMutation = useMutation({
     mutationFn: (habitId) => deleteHabitLog(habitId),
@@ -66,7 +63,7 @@ function Habits() {
       setDeletingLogId(null);
     },
     onError: () => {
-      alert('Failed to delete habit log');
+      toast.error('Failed to delete habit log');
       setDeletingLogId(null);
     }
   });
@@ -78,10 +75,8 @@ function Habits() {
     }
   };
 
-  // Show loading state while initial queries are loading
   const isInitialLoading = isStatusLoading && isStreaksLoading && isHistoryLoading;
   if (isInitialLoading) {
-    console.log('⏳ Habits page loading...');
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
@@ -92,10 +87,8 @@ function Habits() {
     );
   }
 
-  // Check if all queries failed (likely authentication issue)
   const allQueriesFailed = statusError && streaksError && historyError;
   if (allQueriesFailed) {
-    console.error('❌ All habit queries failed - possible auth issue');
     const isAuthError = statusError?.response?.status === 401;
     
     return (
@@ -125,8 +118,6 @@ function Habits() {
     );
   }
 
-  console.log('✅ Habits component rendered successfully');
-
   return (
     <div>
       <div className="mb-8">
@@ -143,11 +134,11 @@ function Habits() {
             <span>⚠️</span>
             <span className="font-semibold">Some data couldn't be loaded</span>
           </div>
-          <p className="text-sm text-yellow-700 mt-2">
+          <div className="text-sm text-yellow-700 mt-2 space-y-1">
             {statusError && <div>• Status: {statusError.message}</div>}
             {streaksError && <div>• Streaks: {streaksError.message}</div>}
             {historyError && <div>• History: {historyError.message}</div>}
-          </p>
+          </div>
         </div>
       )}
 
@@ -157,7 +148,7 @@ function Habits() {
           <HabitStatusCard
             title="Hydration Goal"
             description="Meet your daily water intake target"
-            icon="💧"
+            icon={ICON_EMOJIS.water}
             isComplete={todayStatus?.hydration_complete || false}
             isLoading={isStatusLoading}
             completionText="Water goal achieved!"
@@ -166,7 +157,7 @@ function Habits() {
           <HabitStatusCard
             title="Nutrition Target"
             description="Stay within calorie and macro goals"
-            icon="🍽️"
+            icon={ICON_EMOJIS.food}
             isComplete={todayStatus?.nutrition_within_target || false}
             isLoading={isStatusLoading}
             completionText="Nutrition goals met!"
@@ -175,7 +166,7 @@ function Habits() {
           <HabitStatusCard
             title="Workout Complete"
             description="Complete at least one exercise session"
-            icon="💪"
+            icon={ICON_EMOJIS.workout}
             isComplete={todayStatus?.workout_completed || false}
             isLoading={isStatusLoading}
             completionText="Workout logged!"
@@ -185,23 +176,23 @@ function Habits() {
       </div>
 
       <div className="mb-8">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">Your Streaks 🔥</h2>
+        <h2 className="text-xl font-semibold text-gray-900 mb-4">Your Streaks {ICON_EMOJIS.calories}</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <HabitStreakCard
             title="Hydration"
-            icon="💧"
+            icon={ICON_EMOJIS.water}
             streak={streaks?.hydration_streak || 0}
             isLoading={isStreaksLoading}
           />
           <HabitStreakCard
             title="Nutrition"
-            icon="🍽️"
+            icon={ICON_EMOJIS.food}
             streak={streaks?.nutrition_streak || 0}
             isLoading={isStreaksLoading}
           />
           <HabitStreakCard
             title="Workout"
-            icon="💪"
+            icon={ICON_EMOJIS.workout}
             streak={streaks?.workout_streak || 0}
             isLoading={isStreaksLoading}
           />
@@ -210,7 +201,7 @@ function Habits() {
 
       <div className="mb-8">
         <HabitHistoryList
-          history={history}
+          history={historyEntries}
           isLoading={isHistoryLoading}
           onDelete={handleDeleteLog}
         />

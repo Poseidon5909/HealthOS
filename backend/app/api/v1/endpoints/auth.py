@@ -1,14 +1,27 @@
+import logging
+from urllib.parse import quote
+
 from fastapi import APIRouter, Depends, Request
+from fastapi.responses import RedirectResponse
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 from app.core.database import get_db
-from app.services.auth_service import authenticate_user, refresh_access_token, reset_password_with_token
+from app.services.auth_service import (
+    authenticate_user,
+    authenticate_google_user,
+    get_google_authorization_url,
+    refresh_access_token,
+    reset_password_with_token,
+)
 from app.core.security import get_current_user, verify_password_reset_token
+from app.core.config import settings
 from app.schemas.auth import TokenResponse, RefreshTokenRequest, ForgotPasswordRequest, ResetPasswordRequest
 from app.services.email_service import EmailService
 from app.models.user import User
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 limiter = Limiter(key_func=get_remote_address)
@@ -59,6 +72,37 @@ def refresh_token(
     return refresh_access_token(db, token_request.refresh_token)
 
 
+@router.get("/google/login")
+@limiter.limit("10/minute")
+def google_login(request: Request):
+    """Redirect user to Google OAuth consent screen."""
+    return RedirectResponse(url=get_google_authorization_url(), status_code=302)
+
+
+@router.get("/google/callback")
+@limiter.limit("10/minute")
+def google_callback(
+    request: Request,
+    code: str,
+    db: Session = Depends(get_db)
+):
+    """Handle Google OAuth callback, then redirect to frontend login with app tokens."""
+    try:
+        token_data = authenticate_google_user(db, code)
+    except Exception:
+        return RedirectResponse(url=f"{settings.FRONTEND_URL}/login?error=google_auth_failed", status_code=302)
+
+    access_token = quote(token_data["access_token"], safe="")
+    refresh_token = quote(token_data["refresh_token"], safe="")
+
+    frontend_redirect = (
+        f"{settings.FRONTEND_URL}/login"
+        f"#access_token={access_token}&refresh_token={refresh_token}&provider=google"
+    )
+
+    return RedirectResponse(url=frontend_redirect, status_code=302)
+
+
 @router.get("/protected")
 def protected_route(current_user=Depends(get_current_user)):
     """
@@ -92,7 +136,7 @@ def forgot_password(
         try:
             EmailService.send_password_reset_email(user.email, user.name)
         except Exception as e:
-            print(f"Failed to send password reset email: {str(e)}")
+            logger.error(f"Failed to send password reset email: {str(e)}")
     
     return {
         "message": "If the email exists, a password reset link has been sent"

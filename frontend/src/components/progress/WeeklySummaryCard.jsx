@@ -1,3 +1,5 @@
+﻿import { Scale, Smile, TrendingDown, TrendingUp } from 'lucide-react';
+
 /**
  * WeeklySummaryCard Component
  * 
@@ -16,9 +18,6 @@
  */
 
 function WeeklySummaryCard({ summary, isLoading }) {
-  console.log('📊 WeeklySummaryCard props:', { summary, isLoading });
-  
-  // Show loading state
   if (isLoading) {
     return (
       <div className="bg-white rounded-lg shadow-md p-6 animate-pulse">
@@ -31,15 +30,16 @@ function WeeklySummaryCard({ summary, isLoading }) {
     );
   }
 
-  // Handle empty/no data state
   if (!summary || summary.current_weight === null || summary.current_weight === undefined) {
     return (
       <div className="bg-white rounded-lg shadow-md p-6">
         <h3 className="text-lg font-semibold text-gray-800 mb-4">
-          📊 Weekly Summary
+          Weekly Summary
         </h3>
         <div className="text-center py-8">
-          <div className="text-5xl mb-3">⚖️</div>
+          <div className="mb-3 flex justify-center">
+            <Scale className="text-slate-500" size={44} />
+          </div>
           <p className="text-gray-600 mb-2">No weight data yet</p>
           <p className="text-sm text-gray-500">
             Log your weight to see weekly progress
@@ -56,12 +56,10 @@ function WeeklySummaryCard({ summary, isLoading }) {
     change_percentage
   } = summary || {};
 
-  // Determine change direction and styling
   const hasChange = change_kg !== 0 && change_kg !== null;
   const isWeightLoss = change_kg < 0;
   const isWeightGain = change_kg > 0;
 
-  // Get color classes based on change
   const getChangeColor = () => {
     if (!hasChange) return 'text-gray-600';
     return isWeightLoss ? 'text-green-600' : 'text-red-600';
@@ -96,18 +94,16 @@ function WeeklySummaryCard({ summary, isLoading }) {
 
   const getStatusMessage = () => {
     if (!hasChange) return 'Your weight is stable';
-    if (isWeightLoss) return 'Great progress! Keep it up! 💪';
+    if (isWeightLoss) return 'Great progress! Keep it up!';
     return 'Weight increased this week';
   };
 
   return (
     <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
-      {/* Header */}
       <h3 className="text-lg font-semibold text-gray-800 mb-6">
-        📊 Weekly Summary
+        Weekly Summary
       </h3>
 
-      {/* Current Weight - Large Display */}
       <div className="text-center mb-6 p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg">
         <div className="text-sm text-gray-600 mb-1">Current Weight</div>
         <div className="text-5xl font-bold text-blue-600">
@@ -116,7 +112,6 @@ function WeeklySummaryCard({ summary, isLoading }) {
         </div>
       </div>
 
-      {/* Weekly Change Display */}
       <div className={`p-4 rounded-lg ${getChangeBgColor()} border-2 ${
         isWeightLoss ? 'border-green-200' : isWeightGain ? 'border-red-200' : 'border-gray-200'
       }`}>
@@ -134,23 +129,20 @@ function WeeklySummaryCard({ summary, isLoading }) {
             </div>
           </div>
 
-          {/* Visual Emoji Indicator */}
           <div className="text-5xl">
-            {!hasChange && '😊'}
-            {isWeightLoss && '🎉'}
-            {isWeightGain && '📈'}
+            {!hasChange && <Smile className="text-gray-500" size={42} />}
+            {isWeightLoss && <TrendingDown className="text-green-600" size={42} />}
+            {isWeightGain && <TrendingUp className="text-red-600" size={42} />}
           </div>
         </div>
       </div>
 
-      {/* Status Message */}
       <div className="mt-4 p-3 bg-gray-50 rounded-lg">
         <p className="text-sm text-gray-700 text-center font-medium">
           {getStatusMessage()}
         </p>
       </div>
 
-      {/* Comparison Details */}
       {week_ago_weight && (
         <div className="mt-4 pt-4 border-t border-gray-200">
           <div className="flex justify-between text-sm">

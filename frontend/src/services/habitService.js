@@ -71,8 +71,25 @@ export const getTodayHabitStatus = async () => {
  * - Dopamine trigger: Builds habit loop
  */
 export const getHabitStreaks = async () => {
-  const response = await api.get('/habits/streaks');
-  return response.data;
+  try {
+    const response = await api.get('/habits/streaks');
+    return response.data;
+  } catch (error) {
+    const isTimeout =
+      error?.code === 'ECONNABORTED' ||
+      String(error?.message || '').toLowerCase().includes('timeout');
+
+    // Keep the Habits page usable when streak calculations are slow.
+    if (isTimeout) {
+      return {
+        hydration_streak: 0,
+        nutrition_streak: 0,
+        workout_streak: 0,
+      };
+    }
+
+    throw error;
+  }
 };
 
 /**
@@ -89,23 +106,27 @@ export const getHabitStreaks = async () => {
  * @param {number} limit - Number of items to return
  * @returns {Promise} Array of habit log entries
  * 
- * Example response:
- * [
- *   {
- *     "id": 1,
- *     "habit_type": "workout",
- *     "success": true,
- *     "date": "2026-03-11",
- *     "created_at": "2026-03-11T10:30:00"
- *   },
- *   ...
- * ]
+ * Backend returns a paginated object:
+ * {
+ *   "items": [ ...habit logs... ],
+ *   "total": 42,
+ *   "skip": 0,
+ *   "limit": 50,
+ *   "has_more": false
+ * }
+ *
+ * This method normalizes the response and always returns an array.
  */
 export const getHabitHistory = async (skip = 0, limit = 50) => {
   const response = await api.get('/habits/history', {
     params: { skip, limit }
   });
-  return response.data;
+
+  if (Array.isArray(response.data)) {
+    return response.data;
+  }
+
+  return Array.isArray(response.data?.items) ? response.data.items : [];
 };
 
 /**

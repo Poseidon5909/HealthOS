@@ -1,5 +1,6 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { format, parseISO } from 'date-fns';
+import { Droplets } from 'lucide-react';
 
 /**
  * WaterLogItem Component
@@ -18,26 +19,21 @@ import { format, parseISO } from 'date-fns';
 function WaterLogItem({ log, onDelete, isDeleting = false }) {
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
 
-  // Parse and format the timestamp
   const logDate = parseISO(log.created_at);
   const formattedTime = format(logDate, 'h:mm a');
   const formattedDate = format(logDate, 'MMM d, yyyy');
   
-  // Check if log is from today
   const today = new Date();
   const isToday = format(logDate, 'yyyy-MM-dd') === format(today, 'yyyy-MM-dd');
   
-  // Calculate glasses (250ml per glass)
   const glasses = (log.amount_ml / 250).toFixed(1);
 
-  // Get icon based on amount
-  const getIcon = () => {
-    if (log.amount_ml >= 1000) return '🍶';
-    if (log.amount_ml >= 500) return '💧';
-    return '🥤';
+  const getIconClass = () => {
+    if (log.amount_ml >= 1000) return 'text-cyan-700';
+    if (log.amount_ml >= 500) return 'text-blue-600';
+    return 'text-sky-500';
   };
 
-  // Handle delete confirmation
   const handleDelete = () => {
     onDelete(log.id);
     setShowConfirmDelete(false);
@@ -49,9 +45,8 @@ function WaterLogItem({ log, onDelete, isDeleting = false }) {
       ${isDeleting ? 'opacity-50 animate-pulse' : 'hover:shadow-md hover:border-blue-300'}
     `}>
       <div className="flex items-center justify-between">
-        {/* Left side - Icon and Amount */}
         <div className="flex items-center space-x-3">
-          <div className="text-3xl">{getIcon()}</div>
+          <div className="rounded-full bg-blue-50 p-2"><Droplets className={getIconClass()} size={24} /></div>
           <div>
             <div className="font-bold text-gray-900 text-lg">
               {log.amount_ml} ml
@@ -62,9 +57,7 @@ function WaterLogItem({ log, onDelete, isDeleting = false }) {
           </div>
         </div>
 
-        {/* Right side - Time and Delete */}
         <div className="flex items-center space-x-3">
-          {/* Time Display */}
           <div className="text-right">
             <div className="font-semibold text-gray-900 text-sm">
               {formattedTime}
@@ -74,7 +67,6 @@ function WaterLogItem({ log, onDelete, isDeleting = false }) {
             </div>
           </div>
 
-          {/* Delete Button */}
           {!showConfirmDelete ? (
             <button
               onClick={() => setShowConfirmDelete(true)}
@@ -107,7 +99,6 @@ function WaterLogItem({ log, onDelete, isDeleting = false }) {
         </div>
       </div>
 
-      {/* Confirmation Message */}
       {showConfirmDelete && (
         <div className="mt-3 p-2 bg-red-50 border border-red-200 rounded text-sm text-red-800">
           Are you sure you want to delete this water log?

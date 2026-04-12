@@ -19,22 +19,18 @@ const authService = {
    * @returns {Promise} Response with tokens
    */
   login: async (email, password) => {
-    console.log('🔐 Attempting login for:', email);
-    
     // Backend expects form-data format (application/x-www-form-urlencoded)
     // This matches FastAPI's OAuth2PasswordRequestForm
     const formData = new URLSearchParams();
     formData.append('username', email);  // OAuth2 uses 'username' field
     formData.append('password', password);
 
-    console.log('📤 Sending login request to /auth/login');
     const response = await api.post('/auth/login', formData, {
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
       },
     });
 
-    console.log('✅ Login successful');
     return response.data;
   },
 

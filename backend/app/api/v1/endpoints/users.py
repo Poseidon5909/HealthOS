@@ -1,3 +1,4 @@
+import logging
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 from slowapi import Limiter
@@ -9,6 +10,8 @@ from app.schemas.auth import VerifyEmailRequest
 from app.core.security import hash_password, get_current_user, verify_email_token
 from app.services.user_service import UserService
 from app.services.email_service import EmailService
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 limiter = Limiter(key_func=get_remote_address)
@@ -47,7 +50,7 @@ def create_user(request: Request, user: UserCreate, db: Session = Depends(get_db
     try:
         EmailService.send_verification_email(new_user.email, new_user.name)
     except Exception as e:
-        print(f"Failed to send verification email: {str(e)}")
+        logger.error(f"Failed to send verification email: {str(e)}")
 
     return new_user
 

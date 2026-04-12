@@ -94,28 +94,56 @@ export const validateName = (name) => {
  * @returns {string} User-friendly error message
  */
 export const parseErrorMessage = (error) => {
-  // Network error (no response from server)
   if (!error.response) {
     return 'Network error. Please check your connection.';
   }
 
   const { status, data } = error.response;
+  const wrappedError = data?.error;
+  const rawDetail = data?.detail || wrappedError?.message || data?.message || '';
+  const normalizedDetail = String(rawDetail).toLowerCase();
 
-  // Handle specific status codes
+  if (normalizedDetail.includes('profile not found') || normalizedDetail.includes('user profile not found')) {
+    return 'Complete your profile setup first from the Nutrition page, then try again.';
+  }
+
+  const getWrappedValidationMessage = () => {
+    if (!wrappedError || !Array.isArray(wrappedError.details)) {
+      return null;
+    }
+
+    const firstDetail = wrappedError.details[0];
+    if (!firstDetail) {
+      return null;
+    }
+
+    const field = firstDetail.field || 'field';
+    const message = firstDetail.message || 'Invalid value';
+    return `${field}: ${message}`;
+  };
+
   switch (status) {
     case 400:
-      return data?.detail || 'Invalid request. Please check your input.';
+      return data?.detail || wrappedError?.message || 'Invalid request. Please check your input.';
     
     case 401:
+      if (data?.detail === 'Invalid credentials') {
+        return 'Invalid email or password. Please try again or create an account first.';
+      }
       return data?.detail || data?.message || 'Unauthorized request.';
     
     case 422:
-      // FastAPI validation errors
+      {
+        const wrappedMessage = getWrappedValidationMessage();
+        if (wrappedMessage) {
+          return wrappedMessage;
+        }
+      }
       if (data?.detail && Array.isArray(data.detail)) {
         const messages = data.detail.map(err => err.msg).join(', ');
         return messages || 'Validation error. Please check your input.';
       }
-      return data?.detail || 'Validation error. Please check your input.';
+      return wrappedError?.message || data?.detail || 'Validation error. Please check your input.';
     
     case 429:
       return 'Too many requests. Please try again later.';
@@ -124,6 +152,6 @@ export const parseErrorMessage = (error) => {
       return 'Server error. Please try again later.';
     
     default:
-      return data?.detail || data?.message || 'An error occurred. Please try again.';
+      return data?.detail || wrappedError?.message || data?.message || 'An error occurred. Please try again.';
   }
 };

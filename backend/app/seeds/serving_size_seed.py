@@ -1,6 +1,9 @@
+import logging
 from sqlalchemy.orm import Session
 from app.models.serving_size import ServingSize
 from app.models.food_item import FoodItem
+
+logger = logging.getLogger(__name__)
 
 def seed_serving_sizes(db: Session):
     """Seed common serving sizes for food items."""
@@ -121,4 +124,4 @@ def seed_serving_sizes(db: Session):
     db.bulk_save_objects(serving_sizes)
     db.commit()
     
-    print(f"Seeded {len(serving_sizes)} serving sizes for {len(serving_mappings)} food items")
+    logger.info(f"Seeded {len(serving_sizes)} serving sizes for {len(serving_mappings)} food items")

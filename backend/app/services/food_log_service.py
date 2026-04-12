@@ -142,7 +142,6 @@ class FoodLogService:
     def update_log(db: Session, user_id: int, log_id: int, food_id: int = None, quantity: float = None, meal_type: str = None):
         log = FoodLogService.get_by_id(db, user_id, log_id)
         
-        # Update food_id or quantity if provided
         if food_id is not None:
             food = db.query(FoodItem).filter(FoodItem.id == food_id).first()
             if not food:
@@ -155,7 +154,6 @@ class FoodLogService:
         if meal_type is not None:
             log.meal_type = meal_type
         
-        # Recalculate nutritional values
         food = db.query(FoodItem).filter(FoodItem.id == log.food_id).first()
         factor = log.quantity_grams / 100
         
@@ -192,10 +190,8 @@ class FoodLogService:
         if end_date:
             query = query.filter(FoodLog.date <= end_date)
         
-        # Get total count
         total = query.count()
         
-        # Apply pagination and ordering
         items = query.order_by(FoodLog.date.desc(), FoodLog.created_at.desc())\
                     .offset(skip)\
                     .limit(limit)\

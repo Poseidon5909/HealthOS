@@ -1,4 +1,5 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
+import { BookOpenText, Search, Utensils } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'react-hot-toast';
 import { searchFoods, getTodayFoodLogs, getTodayMealSummary, logFood, updateFoodLog, deleteFoodLog, FOOD_QUERY_KEYS } from '../../services/foodService';
@@ -11,18 +12,9 @@ import EditFoodLogModal from '../../components/food/EditFoodLogModal';
 import FoodLogList from '../../components/food/FoodLogList';
 import DailyTargetsCard from '../../components/nutrition/DailyTargetsCard';
 
-/**
- * Diary Page
- * 
- * Main food tracking interface:
- * - Search and select foods
- * - Log food consumption
- * - View today's meals organized by type
- */
 function Diary() {
   const queryClient = useQueryClient();
   
-  // State management
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFood, setSelectedFood] = useState(null);
   const [editingLog, setEditingLog] = useState(null);
@@ -35,7 +27,6 @@ function Diary() {
     refetchOnWindowFocus: true,
   });
 
-  // Fetch today's food logs
   const {
     data: todayLogs = [],
     isLoading: isLoadingLogs,
@@ -48,7 +39,6 @@ function Diary() {
     refetchOnWindowFocus: true
   });
 
-  // Fetch today's meal summaries
   const {
     data: mealSummary = {},
     isLoading: isLoadingSummary
@@ -59,7 +49,6 @@ function Diary() {
     refetchOnWindowFocus: true
   });
 
-  // Search foods
   const {
     data: searchResults,
     isLoading: isSearching,
@@ -72,14 +61,11 @@ function Diary() {
     staleTime: 5 * 60 * 1000 // Cache for 5 minutes
   });
 
-  // Mutation: Log food
   const logFoodMutation = useMutation({
     mutationFn: logFood,
     onSuccess: () => {
-      // Close the form
       setSelectedFood(null);
       
-      // Invalidate and refetch today's logs AND meal summary
       queryClient.invalidateQueries({ queryKey: FOOD_QUERY_KEYS.todayLogs });
       queryClient.invalidateQueries({ queryKey: FOOD_QUERY_KEYS.mealSummary });
       
@@ -90,14 +76,11 @@ function Diary() {
     }
   });
 
-  // Mutation: Update food log
   const updateFoodMutation = useMutation({
     mutationFn: ({ logId, data }) => updateFoodLog(logId, data),
     onSuccess: () => {
-      // Close the edit modal
       setEditingLog(null);
       
-      // Invalidate and refetch
       queryClient.invalidateQueries({ queryKey: FOOD_QUERY_KEYS.todayLogs });
       queryClient.invalidateQueries({ queryKey: FOOD_QUERY_KEYS.mealSummary });
 
@@ -108,11 +91,9 @@ function Diary() {
     }
   });
 
-  // Mutation: Delete food log
   const deleteFoodMutation = useMutation({
     mutationFn: deleteFoodLog,
     onSuccess: () => {
-      // Refetch today's logs AND meal summary
       queryClient.invalidateQueries({ queryKey: FOOD_QUERY_KEYS.todayLogs });
       queryClient.invalidateQueries({ queryKey: FOOD_QUERY_KEYS.mealSummary });
     },
@@ -121,7 +102,6 @@ function Diary() {
     }
   });
 
-  // Handlers
   const handleSearch = (query) => {
     setSearchQuery(query);
   };
@@ -131,10 +111,7 @@ function Diary() {
   };
 
   const handleAddFoodToMeal = (mealType) => {
-    // When user clicks "Add Food" in a meal section
-    // We can open a food search modal or scroll to search
     setTargetMealType(mealType);
-    // Scroll to search bar
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -169,10 +146,9 @@ function Diary() {
 
   return (
     <div>
-      {/* Page Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 flex items-center">
-          <span className="mr-3">📔</span>
+          <BookOpenText className="mr-3 text-indigo-600" size={30} />
           Food Diary
         </h1>
         <p className="text-gray-600 mt-2">
@@ -192,9 +168,10 @@ function Diary() {
         compact
       />
 
-      {/* Food Search Section */}
       <Card className="mb-6 mt-6">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">🔍 Search Foods</h2>
+        <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+          <Search size={20} className="text-indigo-600" /> Search Foods
+        </h2>
         <FoodSearchBar onSearch={handleSearch} isLoading={isSearching} />
         
         {searchQuery && (
@@ -208,10 +185,11 @@ function Diary() {
         )}
       </Card>
 
-      {/* Today's Meals Section */}
       <div className="mb-6">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold text-gray-900">📊 Today's Meals</h2>
+          <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+            <Utensils size={20} className="text-indigo-600" /> Today's Meals
+          </h2>
           {!isLoadingLogs && todayLogs.length > 0 && (
             <span className="text-sm text-gray-600">
               {todayLogs.length} {todayLogs.length === 1 ? 'entry' : 'entries'} logged
@@ -241,7 +219,6 @@ function Diary() {
         )}
       </div>
 
-      {/* Food Log Form Modal */}
       {selectedFood && (
         <FoodLogForm
           food={selectedFood}
@@ -251,7 +228,6 @@ function Diary() {
         />
       )}
 
-      {/* Edit Food Log Modal */}
       {editingLog && (
         <EditFoodLogModal
           foodLog={editingLog}

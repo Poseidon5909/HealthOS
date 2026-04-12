@@ -24,7 +24,6 @@ class NutritionService:
     activity = profile.activity_level
     goal = profile.goal
 
-    # ---- BMR ----
     if gender == "male":
       bmr = (10 * weight) + (6.25 * height) - (5 * age) + 5
     elif gender == "female":
@@ -32,14 +31,12 @@ class NutritionService:
     else:
       raise HTTPException(status_code=400, detail="Invalid gender")
     
-    # ---- TDEE ----
     multiplier = NutritionService.activity_multipliers.get(activity)
     if not multiplier:
       raise HTTPException(status_code=400, detail="Invalid activity level")
     
     tdee = bmr * multiplier
 
-    # ---- Goal Adjustment ----
     if goal == "lose":
       calories = tdee * 0.8
     elif goal == "maintain":
@@ -51,7 +48,6 @@ class NutritionService:
     
     calories = round(calories)
 
-    # ---- Macros ----
     protein_grams = round(weight * 2)
     fat_grams = round(weight * 0.8)
 
@@ -62,7 +58,6 @@ class NutritionService:
 
     carb_grams = round(remaining_calories / 4)
 
-    # ---- Water ----
     water_ml = weight * 35
 
     if activity == "moderate":

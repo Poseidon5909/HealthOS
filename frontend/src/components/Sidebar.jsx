@@ -1,4 +1,4 @@
-import { NavLink, useNavigate } from 'react-router-dom';
+﻿import { NavLink, useNavigate } from 'react-router-dom';
 import { 
   LayoutDashboard, 
   BookOpen, 
@@ -11,6 +11,7 @@ import {
   LogOut 
 } from 'lucide-react';
 import useAuthStore from '../store/authStore';
+import { BrandMark } from './ui';
 
 /**
  * Sidebar Component
@@ -36,7 +37,6 @@ function Sidebar({ isOpen = false, onClose = () => {} }) {
     onClose();
   };
 
-  // Navigation configuration
   const navigationItems = [
     { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
     { icon: BookOpen, label: 'Diary', path: '/diary' },
@@ -64,20 +64,13 @@ function Sidebar({ isOpen = false, onClose = () => {} }) {
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-      {/* Logo Section */}
       <div className="p-6 border-b border-white/20">
-        <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center text-2xl backdrop-blur">
-            ❤️
-          </div>
-          <div>
-            <h1 className="text-xl font-bold tracking-tight">HealthOS</h1>
-            <p className="text-xs text-white/70">Your Health Hub</p>
-          </div>
-        </div>
+        <BrandMark
+          variant="sidebar"
+          subtitle="Your Health Hub"
+        />
       </div>
 
-      {/* Navigation Links */}
       <nav className="p-4 space-y-1">
         {navigationItems.map((item) => {
           const Icon = item.icon;
@@ -101,7 +94,6 @@ function Sidebar({ isOpen = false, onClose = () => {} }) {
         })}
       </nav>
 
-      {/* Logout Button */}
       <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-white/20">
         <button
           onClick={handleLogout}

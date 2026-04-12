@@ -1,20 +1,102 @@
-import { useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import useAuthStore from '../../store/authStore';
 import authService from '../../services/authService';
+import { BrandMark } from '../../components/ui';
 import { isValidEmail, parseErrorMessage } from '../../utils/validation';
 
 function Login() {
   const navigate = useNavigate();
   const setAuth = useAuthStore((state) => state.setAuth);
+  const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
 
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+
+  useEffect(() => {
+    const queryParams = new URLSearchParams(window.location.search);
+    const errorType = queryParams.get('error');
+
+    if (errorType === 'google_auth_failed') {
+      setError('Google sign-in failed. Please try again.');
+      window.history.replaceState({}, '', '/login');
+      return;
+    }
+
+    const hashParams = new URLSearchParams(window.location.hash.replace('#', ''));
+    const accessToken = hashParams.get('access_token');
+    const refreshToken = hashParams.get('refresh_token');
+    const provider = hashParams.get('provider');
+
+    if (provider === 'google' && accessToken && refreshToken) {
+      const finalizeGoogleLogin = async () => {
+        setIsLoading(true);
+        setError('');
+        try {
+          localStorage.setItem('accessToken', accessToken);
+          localStorage.setItem('refreshToken', refreshToken);
+          const userData = await authService.getCurrentUser();
+          setAuth(userData, accessToken, refreshToken);
+          toast.success('Signed in with Google successfully.');
+          window.history.replaceState({}, '', '/login');
+          navigate('/dashboard', { replace: true });
+        } catch (err) {
+          localStorage.removeItem('accessToken');
+          localStorage.removeItem('refreshToken');
+          setError(parseErrorMessage(err));
+          setIsLoading(false);
+          window.history.replaceState({}, '', '/login');
+        }
+      };
+
+      finalizeGoogleLogin();
+    }
+  }, [navigate, setAuth]);
+
+  const handleGoogleLogin = () => {
+    window.location.href = `${API_BASE_URL}/auth/google/login`;
+  };
+
+  const pageStyles = {
+    container: {
+      display: 'flex',
+      minHeight: '100vh',
+      fontFamily: "'Plus Jakarta Sans', sans-serif",
+      background: '#f8fafc',
+    },
+    hero: {
+      flex: 1,
+      background: 'linear-gradient(145deg, #1d4ed8 0%, #4f46e5 48%, #7c3aed 100%)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      position: 'relative',
+      overflow: 'hidden',
+    },
+    heroContent: {
+      position: 'relative',
+      zIndex: 2,
+      textAlign: 'center',
+      color: '#fff',
+      padding: '0 40px',
+    },
+    panel: {
+      width: 500,
+      flexShrink: 0,
+      background: '#fff',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: '64px 48px',
+      overflowY: 'auto',
+      boxShadow: '-24px 0 60px rgba(15, 23, 42, 0.06)',
+    },
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -46,28 +128,18 @@ function Login() {
       toast.success('Login successful. Welcome back!');
       setTimeout(() => navigate('/dashboard'), 1500);
     } catch (err) {
-      console.error('Login error:', err);
       setError(parseErrorMessage(err));
       setIsLoading(false);
     }
   };
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+    <div style={pageStyles.container}>
 
-      {/* ── LEFT PANEL ── */}
       <div
-        style={{
-          flex: 1,
-          background: 'linear-gradient(145deg, #1a56db 0%, #6366f1 50%, #a855f7 100%)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          position: 'relative',
-          overflow: 'hidden',
-        }}
+        className="login-hero-panel"
+        style={pageStyles.hero}
       >
-        {/* Blobs */}
         {[
           { w: 380, top: -100, left: -100, delay: '0s' },
           { w: 260, bottom: 40, right: -70, delay: '2s' },
@@ -91,15 +163,22 @@ function Login() {
           />
         ))}
 
-        {/* Brand content */}
-        <div style={{ position: 'relative', zIndex: 2, textAlign: 'center', color: '#fff', padding: '0 40px' }}>
-          <div style={{ fontSize: 80, marginBottom: 20, lineHeight: 1 }}>❤️</div>
-          <h1 style={{ fontSize: 48, fontWeight: 800, letterSpacing: -1.5, marginBottom: 12 }}>
-            HealthOS
-          </h1>
-          <p style={{ fontSize: 16, color: 'rgba(255,255,255,0.6)', lineHeight: 1.6, maxWidth: 300, margin: '0 auto' }}>
-            Track every meal. Every rep. Every goal.
-          </p>
+        <div style={pageStyles.heroContent}>
+          <BrandMark
+            subtitle="Track every meal. Every rep. Every goal."
+            containerStyle={{
+              flexDirection: 'column',
+              gap: 0,
+            }}
+            titleStyle={{
+              marginTop: 24,
+              textAlign: 'center',
+            }}
+            subtitleStyle={{
+              maxWidth: 320,
+              textAlign: 'center',
+            }}
+          />
         </div>
 
         <style>{`
@@ -107,30 +186,32 @@ function Login() {
             0%, 100% { transform: scale(1); opacity: 0.5; }
             50% { transform: scale(1.1); opacity: 0.9; }
           }
+
+          @media (max-width: 980px) {
+            .login-hero-panel {
+              display: none;
+            }
+
+            .login-form-panel {
+              width: 100% !important;
+              min-height: 100vh;
+              padding: 40px 24px !important;
+              box-shadow: none !important;
+            }
+          }
         `}</style>
       </div>
 
-      {/* ── RIGHT PANEL ── */}
       <div
-        style={{
-          width: 500,
-          flexShrink: 0,
-          background: '#fff',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: '64px 48px',
-          overflowY: 'auto',
-        }}
+        className="login-form-panel"
+        style={pageStyles.panel}
       >
         <div style={{ width: '100%', maxWidth: 380 }}>
 
-          {/* Title */}
           <h2 style={{ fontSize: 26, fontWeight: 800, color: '#0f172a', marginBottom: 24, letterSpacing: -0.5 }}>
             Member Login
           </h2>
 
-          {/* Error */}
           {error && (
             <div style={{
               marginBottom: 16,
@@ -145,7 +226,6 @@ function Login() {
 
           <form onSubmit={handleSubmit}>
 
-            {/* Email */}
             <input
               type="email"
               name="email"
@@ -182,7 +262,6 @@ function Login() {
               }}
             />
 
-            {/* Password */}
             <div style={{ position: 'relative', marginBottom: 8 }}>
               <input
                 type={showPassword ? 'text' : 'password'}
@@ -221,7 +300,7 @@ function Login() {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                tabIndex="-1"
+                tabIndex={-1}
                 style={{
                   position: 'absolute', right: 14, top: '50%',
                   transform: 'translateY(-50%)',
@@ -233,7 +312,6 @@ function Login() {
               </button>
             </div>
 
-            {/* Forgot */}
             <div style={{ textAlign: 'right', marginBottom: 20 }}>
               <button type="button" style={{
                 background: 'none', border: 'none', cursor: 'pointer',
@@ -244,7 +322,6 @@ function Login() {
               </button>
             </div>
 
-            {/* Log In */}
             <button
               type="submit"
               disabled={isLoading || isSuccess}
@@ -272,29 +349,34 @@ function Login() {
                 e.target.style.transform = 'translateY(0)';
               }}
             >
-              {isSuccess ? '✓ Welcome back!' : isLoading ? 'Logging in...' : 'Log In'}
+              {isSuccess ? 'Welcome back!' : isLoading ? 'Logging in...' : 'Log In'}
             </button>
           </form>
 
-          {/* Divider */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
             <div style={{ flex: 1, height: 1, background: '#e2e8f0' }} />
             <span style={{ fontSize: 13, color: '#94a3b8', fontWeight: 500 }}>or</span>
             <div style={{ flex: 1, height: 1, background: '#e2e8f0' }} />
           </div>
 
-          {/* Google */}
           <button
             type="button"
+            onClick={handleGoogleLogin}
+            disabled={isLoading || isSuccess}
             style={{
               width: '100%', height: 54,
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12,
               background: '#fff', border: '1.5px solid #e2e8f0',
               borderRadius: 12, fontSize: 15, fontWeight: 700,
-              color: '#334155', cursor: 'pointer', fontFamily: 'inherit',
-              marginBottom: 12, transition: 'all 0.2s',
+              color: '#334155', cursor: isLoading || isSuccess ? 'not-allowed' : 'pointer', fontFamily: 'inherit',
+              marginBottom: 20, transition: 'all 0.2s',
+              opacity: isLoading || isSuccess ? 0.7 : 1,
             }}
-            onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 2px 12px rgba(0,0,0,0.08)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+            onMouseEnter={e => {
+              if (isLoading || isSuccess) return;
+              e.currentTarget.style.boxShadow = '0 2px 12px rgba(0,0,0,0.08)';
+              e.currentTarget.style.transform = 'translateY(-1px)';
+            }}
             onMouseLeave={e => { e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'translateY(0)'; }}
           >
             <svg width="20" height="20" viewBox="0 0 24 24">
@@ -306,31 +388,6 @@ function Login() {
             Continue with Google
           </button>
 
-          {/* Facebook */}
-          <button
-            type="button"
-            style={{
-              width: '100%', height: 54,
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12,
-              background: '#fff', border: '1.5px solid #e2e8f0',
-              borderRadius: 12, fontSize: 15, fontWeight: 700,
-              color: '#334155', cursor: 'pointer', fontFamily: 'inherit',
-              marginBottom: 20, transition: 'all 0.2s',
-            }}
-            onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 2px 12px rgba(0,0,0,0.08)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
-            onMouseLeave={e => { e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'translateY(0)'; }}
-          >
-            <div style={{
-              width: 22, height: 22, background: '#1877F2',
-              borderRadius: '50%', display: 'flex',
-              alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-            }}>
-              <span style={{ color: '#fff', fontWeight: 800, fontSize: 14, lineHeight: 1 }}>f</span>
-            </div>
-            Continue with Facebook
-          </button>
-
-          {/* Sign up */}
           <p style={{ textAlign: 'center', fontSize: 14, color: '#64748b', marginBottom: 12 }}>
             Not a member yet?{' '}
             <Link to="/register" style={{ color: '#1a56db', fontWeight: 700, textDecoration: 'none' }}>
@@ -338,7 +395,6 @@ function Login() {
             </Link>
           </p>
 
-          {/* Terms */}
           <p style={{ textAlign: 'center', fontSize: 12, color: '#94a3b8', lineHeight: 1.7 }}>
             By continuing, you agree to our{' '}
             <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b', fontSize: 12, textDecoration: 'underline', fontFamily: 'inherit' }}>

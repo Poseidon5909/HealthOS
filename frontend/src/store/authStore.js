@@ -8,13 +8,10 @@ import { persist } from 'zustand/middleware';
 const useAuthStore = create(
   persist(
     (set, get) => ({
-      // State
       user: null,
       accessToken: null,
       refreshToken: null,
       isAuthenticated: false,
-
-      // Actions
       
       /**
        * Set authentication data after successful login
@@ -23,7 +20,6 @@ const useAuthStore = create(
        * @param {string} refreshToken - JWT refresh token
        */
       setAuth: (userData, accessToken, refreshToken) => {
-        // Save tokens to localStorage for API client
         localStorage.setItem('accessToken', accessToken);
         localStorage.setItem('refreshToken', refreshToken);
 
@@ -47,7 +43,6 @@ const useAuthStore = create(
        * Clear authentication and logout user
        */
       logout: () => {
-        // Remove tokens from localStorage
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
 
@@ -58,7 +53,6 @@ const useAuthStore = create(
           isAuthenticated: false,
         });
 
-        // Redirect to login page
         window.location.href = '/login';
       },
 
@@ -81,8 +75,7 @@ const useAuthStore = create(
       },
     }),
     {
-      name: 'auth-storage', // localStorage key
-      // Only persist these fields
+      name: 'auth-storage',
       partialize: (state) => ({
         user: state.user,
         accessToken: state.accessToken,

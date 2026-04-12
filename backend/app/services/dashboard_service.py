@@ -28,10 +28,6 @@ class DashboardService:
         fat_target = target.fat_target if target else 0
         water_target = target.water_target if target else 0
 
-        # ---------------------------
-        # Nutrition Aggregation
-        # ---------------------------
-
         food_summary = db.query(
             func.coalesce(func.sum(FoodLog.calculated_calories), 0),
             func.coalesce(func.sum(FoodLog.calculated_protein), 0),
@@ -49,10 +45,6 @@ class DashboardService:
 
         calories_remaining = max(calorie_target - calories_consumed, 0)
 
-        # ---------------------------
-        # Hydration Aggregation
-        # ---------------------------
-
         water_consumed = db.query(
             func.coalesce(func.sum(WaterLog.amount_ml), 0)
         ).filter(
@@ -63,10 +55,6 @@ class DashboardService:
         hydration_progress = 0
         if water_target > 0:
             hydration_progress = min((water_consumed / water_target) * 100, 100)
-
-        # ---------------------------
-        # Workout Aggregation
-        # ---------------------------
 
         workout_summary = db.query(
             func.coalesce(func.sum(WorkoutLog.calories_burned), 0),
@@ -79,10 +67,6 @@ class DashboardService:
         calories_burned = workout_summary[0]
         workout_duration = workout_summary[1]
 
-        # ---------------------------
-        # Weight Snapshot
-        # ---------------------------
-
         latest_weight_entry = db.query(WeightLog).filter(
             WeightLog.user_id == user_id
         ).order_by(WeightLog.date.desc()).first()
@@ -91,15 +75,7 @@ class DashboardService:
 
         weekly_weight = ProgressService.get_weekly_weight_change(db, user_id)
 
-        # ---------------------------
-        # Consistency Analytics
-        # ---------------------------
-
         consistency = ProgressService.get_consistency_summary(db, user_id)
-
-        # ---------------------------
-        # Final Dashboard Response
-        # ---------------------------
 
         return {
 

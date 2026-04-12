@@ -11,10 +11,7 @@ from app.models.habit_log import HabitLog
 
 
 class HabitService:
-
-    # ---------------------------
-    # Hydration Habit
-    # ---------------------------
+    MAX_STREAK_LOOKBACK_DAYS = 365
 
     @staticmethod
     def hydration_complete(db: Session, user_id: int, check_date: date):
@@ -22,6 +19,10 @@ class HabitService:
         water_target = db.query(DailyTarget.water_target).filter(
             DailyTarget.user_id == user_id
         ).scalar() or 0
+
+        # If no valid target is set, hydration cannot be considered complete.
+        if water_target <= 0:
+            return False
 
         consumed = db.query(
             func.coalesce(func.sum(WaterLog.amount_ml), 0)
@@ -32,16 +33,16 @@ class HabitService:
 
         return consumed >= water_target
 
-    # ---------------------------
-    # Nutrition Habit
-    # ---------------------------
-
     @staticmethod
     def nutrition_within_target(db: Session, user_id: int, check_date: date):
 
         target = db.query(DailyTarget.calorie_target).filter(
             DailyTarget.user_id == user_id
         ).scalar() or 0
+
+        # If no valid target is set, nutrition cannot be considered complete.
+        if target <= 0:
+            return False
 
         calories = db.query(
             func.coalesce(func.sum(FoodLog.calculated_calories), 0)
@@ -55,10 +56,6 @@ class HabitService:
 
         return lower <= calories <= upper
 
-    # ---------------------------
-    # Workout Habit
-    # ---------------------------
-
     @staticmethod
     def workout_completed(db: Session, user_id: int, check_date: date):
 
@@ -68,10 +65,6 @@ class HabitService:
         ).count()
 
         return workout_count > 0
-
-    # ---------------------------
-    # Today's Habit Status
-    # ---------------------------
 
     @staticmethod
     def get_today_status(db: Session, user_id: int):
@@ -88,17 +81,13 @@ class HabitService:
             "workout_completed": workout
         }
 
-    # ---------------------------
-    # Streak Calculation
-    # ---------------------------
-
     @staticmethod
     def calculate_streak(check_function, db: Session, user_id: int):
 
         streak = 0
         day = date.today()
 
-        while True:
+        for _ in range(HabitService.MAX_STREAK_LOOKBACK_DAYS):
 
             success = check_function(db, user_id, day)
 
@@ -110,34 +99,104 @@ class HabitService:
 
         return streak
 
-    # ---------------------------
-    # Habit Streaks
-    # ---------------------------
+    @staticmethod
+    def _streak_from_success_dates(success_dates: set[date]) -> int:
+        streak = 0
+        day = date.today()
+
+        while streak < HabitService.MAX_STREAK_LOOKBACK_DAYS and day in success_dates:
+            streak += 1
+            day -= timedelta(days=1)
+
+        return streak
+
+    @staticmethod
+    def _hydration_streak(db: Session, user_id: int) -> int:
+        water_target = db.query(DailyTarget.water_target).filter(
+            DailyTarget.user_id == user_id
+        ).scalar() or 0
+
+        if water_target <= 0:
+            return 0
+
+        today = date.today()
+        since = today - timedelta(days=HabitService.MAX_STREAK_LOOKBACK_DAYS - 1)
+
+        daily_totals = db.query(
+            WaterLog.date,
+            func.coalesce(func.sum(WaterLog.amount_ml), 0).label("total_ml")
+        ).filter(
+            WaterLog.user_id == user_id,
+            WaterLog.date >= since,
+            WaterLog.date <= today
+        ).group_by(
+            WaterLog.date
+        ).all()
+
+        success_dates = {row.date for row in daily_totals if row.total_ml >= water_target}
+        return HabitService._streak_from_success_dates(success_dates)
+
+    @staticmethod
+    def _nutrition_streak(db: Session, user_id: int) -> int:
+        target = db.query(DailyTarget.calorie_target).filter(
+            DailyTarget.user_id == user_id
+        ).scalar() or 0
+
+        if target <= 0:
+            return 0
+
+        lower = target * 0.9
+        upper = target * 1.1
+
+        today = date.today()
+        since = today - timedelta(days=HabitService.MAX_STREAK_LOOKBACK_DAYS - 1)
+
+        daily_calories = db.query(
+            FoodLog.date,
+            func.coalesce(func.sum(FoodLog.calculated_calories), 0).label("total_calories")
+        ).filter(
+            FoodLog.user_id == user_id,
+            FoodLog.date >= since,
+            FoodLog.date <= today
+        ).group_by(
+            FoodLog.date
+        ).all()
+
+        success_dates = {
+            row.date for row in daily_calories
+            if lower <= row.total_calories <= upper
+        }
+        return HabitService._streak_from_success_dates(success_dates)
+
+    @staticmethod
+    def _workout_streak(db: Session, user_id: int) -> int:
+        today = date.today()
+        since = today - timedelta(days=HabitService.MAX_STREAK_LOOKBACK_DAYS - 1)
+
+        workout_dates = db.query(
+            WorkoutLog.date
+        ).filter(
+            WorkoutLog.user_id == user_id,
+            WorkoutLog.date >= since,
+            WorkoutLog.date <= today
+        ).group_by(
+            WorkoutLog.date
+        ).all()
+
+        success_dates = {row.date for row in workout_dates}
+        return HabitService._streak_from_success_dates(success_dates)
 
     @staticmethod
     def get_streaks(db: Session, user_id: int):
-
-        hydration_streak = HabitService.calculate_streak(
-            HabitService.hydration_complete, db, user_id
-        )
-
-        nutrition_streak = HabitService.calculate_streak(
-            HabitService.nutrition_within_target, db, user_id
-        )
-
-        workout_streak = HabitService.calculate_streak(
-            HabitService.workout_completed, db, user_id
-        )
+        hydration_streak = HabitService._hydration_streak(db, user_id)
+        nutrition_streak = HabitService._nutrition_streak(db, user_id)
+        workout_streak = HabitService._workout_streak(db, user_id)
 
         return {
             "hydration_streak": hydration_streak,
             "nutrition_streak": nutrition_streak,
             "workout_streak": workout_streak
         }
-
-    # ---------------------------
-    # Habit Log CRUD Operations
-    # ---------------------------
 
     @staticmethod
     def create_habit_log(db: Session, user_id: int, habit_type: str, success: bool, log_date: date = None):

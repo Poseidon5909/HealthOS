@@ -4,3 +4,4 @@ export { default as Input } from './Input';
 export { default as Loader } from './Loader';
 export { default as Skeleton } from './Skeleton';
 export { default as ErrorState } from './ErrorState';
+export { default as BrandMark } from './BrandMark';

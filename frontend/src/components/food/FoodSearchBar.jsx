@@ -1,4 +1,5 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
+import { Lightbulb } from 'lucide-react';
 import { Button, Input } from '../ui';
 
 /**
@@ -31,7 +32,6 @@ function FoodSearchBar({ onSearch, isLoading = false }) {
         Search food database
       </label>
       <div className="relative">
-        {/* Search Icon */}
         <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
           <svg 
             className="w-5 h-5 text-gray-400" 
@@ -48,7 +48,6 @@ function FoodSearchBar({ onSearch, isLoading = false }) {
           </svg>
         </div>
 
-        {/* Search Input */}
         <Input
           id="food-search-input"
           type="text"
@@ -60,7 +59,6 @@ function FoodSearchBar({ onSearch, isLoading = false }) {
           aria-label="Search foods"
         />
 
-        {/* Action Buttons */}
         <div className="absolute inset-y-0 right-0 flex items-center pr-2 space-x-2">
           {searchQuery && (
             <button
@@ -87,9 +85,9 @@ function FoodSearchBar({ onSearch, isLoading = false }) {
         </div>
       </div>
 
-      {/* Search Tips */}
-      <p className="text-sm text-gray-500 mt-2">
-        💡 Tip: Search by food name or brand (e.g., "grilled chicken breast")
+      <p className="text-sm text-gray-500 mt-2 flex items-center gap-2">
+        <Lightbulb size={14} className="text-amber-500" />
+        Tip: Search by food name or brand (e.g., "grilled chicken breast")
       </p>
     </form>
   );

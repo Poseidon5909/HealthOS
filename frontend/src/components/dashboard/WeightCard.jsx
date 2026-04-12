@@ -1,4 +1,5 @@
-import { memo } from 'react';
+﻿import { memo } from 'react';
+import { ArrowDownRight, ArrowRight, ArrowUpRight, Scale } from 'lucide-react';
 import { Card } from '../ui';
 
 /**
@@ -13,7 +14,6 @@ import { Card } from '../ui';
  */
 
 function WeightCard({ weight }) {
-  // Handle empty data
   if (!weight || weight.latest_weight === null) {
     return (
       <Card hoverable>
@@ -31,38 +31,36 @@ function WeightCard({ weight }) {
     weekly_change = 0 
   } = weight;
 
-  // Determine trend
   const isGain = weekly_change > 0;
   const isLoss = weekly_change < 0;
   const isStable = weekly_change === 0;
 
-  // Trend colors and icons
   let trendColor = 'text-gray-600';
-  let trendIcon = '➡️';
+  let trendIcon = <ArrowRight size={18} className="text-gray-600" />;
   let trendText = 'No change';
   let bgColor = 'bg-gray-50';
 
   if (isLoss) {
     trendColor = 'text-green-600';
-    trendIcon = '📉';
+    trendIcon = <ArrowDownRight size={18} className="text-green-600" />;
     trendText = 'Weight loss';
     bgColor = 'bg-green-50';
   } else if (isGain) {
     trendColor = 'text-red-600';
-    trendIcon = '📈';
+    trendIcon = <ArrowUpRight size={18} className="text-red-600" />;
     trendText = 'Weight gain';
     bgColor = 'bg-red-50';
   }
 
   return (
     <Card hoverable>
-      {/* Header */}
       <div className="mb-4 flex items-center justify-between">
         <h3 className="text-lg font-semibold text-gray-800">Weight</h3>
-        <span className="rounded-full bg-emerald-100 px-2 py-1 text-xs font-semibold text-emerald-700">⚖️ Metric</span>
+        <span className="rounded-full bg-emerald-100 px-2 py-1 text-xs font-semibold text-emerald-700 inline-flex items-center gap-1">
+          <Scale size={12} /> Metric
+        </span>
       </div>
       
-      {/* Current Weight Display */}
       <div className="text-center mb-4">
         <div className="text-5xl font-bold text-gray-900">
           {latest_weight}
@@ -70,7 +68,6 @@ function WeightCard({ weight }) {
         <div className="text-sm text-gray-600 mt-1">kg</div>
       </div>
       
-      {/* Weekly Change */}
       <div className={`${bgColor} rounded-lg p-3 mt-4`}>
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
@@ -88,15 +85,14 @@ function WeightCard({ weight }) {
         </div>
       </div>
       
-      {/* Motivational Text */}
       {isLoss && (
         <div className="mt-3 text-center text-xs text-green-600 font-medium">
-          Keep up the great work! 💪
+          Keep up the great work!
         </div>
       )}
       {isStable && (
         <div className="mt-3 text-center text-xs text-gray-600">
-          Maintaining steady progress 👍
+          Maintaining steady progress
         </div>
       )}
     </Card>

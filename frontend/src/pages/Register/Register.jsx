@@ -1,7 +1,9 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Eye, EyeOff } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Eye, EyeOff, Dumbbell, Scale, TrendingDown } from 'lucide-react';
 import authService from '../../services/authService';
+import { BrandMark } from '../../components/ui';
+import { saveNutritionProfile } from '../../services/nutritionTargetsService';
 import {
   isValidEmail,
   validatePassword,
@@ -15,7 +17,6 @@ function Register() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  // Form state
   const [formData, setFormData] = useState({
     name: '',
     goal: '',
@@ -27,7 +28,6 @@ function Register() {
     confirmPassword: '',
   });
 
-  // UI state
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
@@ -36,7 +36,14 @@ function Register() {
 
   const totalSteps = 4;
 
-  // Handle input changes
+  const mapGoalToProfileGoal = (goal) => {
+    if (goal === 'build') {
+      return 'gain';
+    }
+
+    return goal;
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -46,13 +53,11 @@ function Register() {
     if (error) setError('');
   };
 
-  // Handle goal selection
   const handleSelectGoal = (goal) => {
     setFormData((prev) => ({ ...prev, goal }));
     if (error) setError('');
   };
 
-  // Validate and navigate to next step
   const handleNext = () => {
     if (currentStep === 1 && !formData.name.trim()) {
       setError('Please enter your name');
@@ -79,7 +84,6 @@ function Register() {
     }
   };
 
-  // Navigate to previous step
   const handleBack = () => {
     if (currentStep > 1) {
       setCurrentStep(currentStep - 1);
@@ -87,7 +91,6 @@ function Register() {
     }
   };
 
-  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -117,19 +120,52 @@ function Register() {
         password: formData.password,
       });
 
+      // Create an initial nutrition profile so downstream pages
+      // (daily targets, workouts, nutrition calculations) don't fail.
+      const authTokens = await authService.login(formData.email.trim(), formData.password);
+      
+      localStorage.setItem('accessToken', authTokens.access_token);
+      localStorage.setItem('refreshToken', authTokens.refresh_token);
+
+      try {
+        await saveNutritionProfile(
+          {
+            height: Number(formData.height),
+            weight: Number(formData.weight),
+            age: Number(formData.age),
+            gender: 'other',
+            activity_level: 'moderate',
+            goal: mapGoalToProfileGoal(formData.goal),
+          },
+          false
+        );
+      } catch (profileError) {
+        // Log profile creation error but don't block registration
+        console.error('Failed to create nutrition profile:', profileError);
+        setError('Account created, but profile setup incomplete. You can complete it later.');
+        setSuccess(false);
+        setIsLoading(false);
+        return;
+      }
+
+      // Only clear tokens after both registration and profile creation succeed
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+
       setSuccess(true);
       setTimeout(() => {
         navigate('/login');
       }, 2000);
     } catch (err) {
-      console.error('Registration error:', err);
+      // Clear tokens on registration error
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
       setError(parseErrorMessage(err));
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Styles
   const styles = {
     container: {
       display: 'flex',
@@ -147,15 +183,6 @@ function Register() {
     leftContent: {
       textAlign: 'center',
       color: 'white',
-    },
-    emoji: {
-      fontSize: '80px',
-      marginBottom: '24px',
-    },
-    logo: {
-      fontSize: '48px',
-      fontWeight: 800,
-      marginBottom: '16px',
     },
     tagline: {
       fontSize: '20px',
@@ -375,12 +402,11 @@ function Register() {
     },
   };
 
-  // Success Screen
   if (success) {
     return (
       <div style={styles.successContainer}>
         <div style={styles.successCard}>
-          <div style={styles.successIcon}>✓</div>
+          <div style={styles.successIcon}><CheckCircle2 size={32} color="#16a34a" /></div>
           <h2 style={{ fontSize: '28px', fontWeight: 800, marginBottom: '12px', color: '#0f172a' }}>
             Welcome to HealthOS!
           </h2>
@@ -395,11 +421,10 @@ function Register() {
     );
   }
 
-  // Goals data
   const goals = [
-    { emoji: '🏃', label: 'Lose Weight', value: 'lose' },
-    { emoji: '💪', label: 'Build Muscle', value: 'build' },
-    { emoji: '⚖️', label: 'Maintain Weight', value: 'maintain' },
+    { emoji: <TrendingDown size={22} color="#1a56db" />, label: 'Lose Weight', value: 'lose' },
+    { emoji: <Dumbbell size={22} color="#1a56db" />, label: 'Build Muscle', value: 'build' },
+    { emoji: <Scale size={22} color="#1a56db" />, label: 'Maintain Weight', value: 'maintain' },
   ];
 
   return (
@@ -414,23 +439,28 @@ function Register() {
         `}
       </style>
       <div style={styles.container}>
-        {/* Left Panel */}
         <div style={styles.leftPanel}>
           <div style={styles.leftContent}>
-            <div style={styles.emoji}>❤️</div>
-            <h1 style={styles.logo}>HealthOS</h1>
-            <p style={styles.tagline}>
-              Track every meal.<br />
-              Every rep.<br />
-              Every goal.
-            </p>
+            <BrandMark
+              subtitle="Track every meal. Every rep. Every goal."
+              containerStyle={{
+                flexDirection: 'column',
+                gap: 0,
+              }}
+              titleStyle={{
+                marginTop: 24,
+                textAlign: 'center',
+              }}
+              subtitleStyle={{
+                maxWidth: 280,
+                textAlign: 'center',
+              }}
+            />
           </div>
         </div>
 
-        {/* Right Panel */}
         <div style={styles.rightPanel}>
           <div style={styles.formContainer}>
-            {/* Step Indicator */}
             <div style={styles.stepIndicator}>
               {[1, 2, 3, 4].map((step) => (
                 <div
@@ -443,17 +473,16 @@ function Register() {
               ))}
             </div>
 
-            {/* Back Button */}
             {currentStep > 1 && (
               <button onClick={handleBack} style={styles.backButton}>
-                ← Back
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                  <ArrowLeft size={14} /> Back
+                </span>
               </button>
             )}
 
-            {/* Error Message */}
             {error && <div style={styles.error}>{error}</div>}
 
-            {/* Step 1: Name */}
             {currentStep === 1 && (
               <div>
                 <h2 style={styles.heading}>What's your first name?</h2>
@@ -493,7 +522,6 @@ function Register() {
               </div>
             )}
 
-            {/* Step 2: Goal */}
             {currentStep === 2 && (
               <div>
                 <h2 style={styles.heading}>What's your goal?</h2>
@@ -525,13 +553,11 @@ function Register() {
               </div>
             )}
 
-            {/* Step 3: Details */}
             {currentStep === 3 && (
               <div>
                 <h2 style={styles.heading}>Tell us about yourself</h2>
                 <p style={styles.subtitle}>This helps us calculate your personalized plan.</p>
                 <div style={styles.detailsGrid}>
-                  {/* Age Input */}
                   <div style={styles.detailInputWrapper}>
                     <label style={styles.detailLabel}>Your Age</label>
                     <div style={styles.detailInputGroup}>
@@ -552,7 +578,6 @@ function Register() {
                     </div>
                   </div>
 
-                  {/* Weight Input */}
                   <div style={styles.detailInputWrapper}>
                     <label style={styles.detailLabel}>Current Weight</label>
                     <div style={styles.detailInputGroup}>
@@ -573,7 +598,6 @@ function Register() {
                     </div>
                   </div>
 
-                  {/* Height Input */}
                   <div style={styles.detailInputWrapper}>
                     <label style={styles.detailLabel}>Your Height</label>
                     <div style={styles.detailInputGroup}>
@@ -608,7 +632,6 @@ function Register() {
               </div>
             )}
 
-            {/* Step 4: Account */}
             {currentStep === 4 && (
               <form onSubmit={handleSubmit}>
                 <h2 style={styles.heading}>Create your account</h2>

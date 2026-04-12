@@ -1,5 +1,6 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
+import { Coffee, Moon, Sandwich, Utensils } from 'lucide-react';
 import { Input } from '../ui';
 
 /**
@@ -38,16 +39,16 @@ function FoodLogForm({ food, onSubmit, onCancel, isSubmitting = false }) {
     });
   };
 
-  // Calculate nutrition based on quantity
   const calculateNutrition = (per100g, grams) => {
+    if (!per100g || !grams || isNaN(grams)) return 0;
     return Math.round((per100g * grams) / 100);
   };
 
-  const quantityNum = parseFloat(quantity) || 0;
-  const calculatedCalories = calculateNutrition(food.calories_per_100g, quantityNum);
-  const calculatedProtein = calculateNutrition(food.protein_per_100g, quantityNum);
-  const calculatedCarbs = calculateNutrition(food.carbs_per_100g, quantityNum);
-  const calculatedFat = calculateNutrition(food.fat_per_100g, quantityNum);
+  const quantityNum = !isNaN(parseFloat(quantity)) && parseFloat(quantity) > 0 ? parseFloat(quantity) : 0;
+  const calculatedCalories = calculateNutrition(food?.calories_per_100g, quantityNum);
+  const calculatedProtein = calculateNutrition(food?.protein_per_100g, quantityNum);
+  const calculatedCarbs = calculateNutrition(food?.carbs_per_100g, quantityNum);
+  const calculatedFat = calculateNutrition(food?.fat_per_100g, quantityNum);
 
   return (
     <AnimatePresence>
@@ -69,7 +70,6 @@ function FoodLogForm({ food, onSubmit, onCancel, isSubmitting = false }) {
         transition={{ duration: 0.2, ease: 'easeOut' }}
         onClick={(event) => event.stopPropagation()}
       >
-        {/* Header */}
         <div className="bg-indigo-600 text-white p-4 rounded-t-lg">
           <div className="flex items-center justify-between">
             <h3 id="food-log-title" className="text-xl font-semibold">Add to Diary</h3>
@@ -87,9 +87,7 @@ function FoodLogForm({ food, onSubmit, onCancel, isSubmitting = false }) {
           <p className="text-indigo-100 mt-1">{food.name}</p>
         </div>
 
-        {/* Form */}
         <form onSubmit={handleSubmit} className="p-6">
-          {/* Quantity Input */}
           <div className="mb-6">
             <label htmlFor="food-quantity" className="block text-sm font-medium text-gray-700 mb-2">
               Quantity (grams)
@@ -110,7 +108,6 @@ function FoodLogForm({ food, onSubmit, onCancel, isSubmitting = false }) {
             </p>
           </div>
 
-          {/* Meal Type Select */}
           <div className="mb-6">
             <label htmlFor="meal-type" className="block text-sm font-medium text-gray-700 mb-2">
               Meal Type
@@ -122,11 +119,17 @@ function FoodLogForm({ food, onSubmit, onCancel, isSubmitting = false }) {
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
               disabled={isSubmitting}
             >
-              <option value="breakfast">🍳 Breakfast</option>
-              <option value="lunch">🍱 Lunch</option>
-              <option value="dinner">🍽️ Dinner</option>
-              <option value="snack">🍿 Snack</option>
+              <option value="breakfast">Breakfast</option>
+              <option value="lunch">Lunch</option>
+              <option value="dinner">Dinner</option>
+              <option value="snack">Snack</option>
             </select>
+            <div className="mt-2 flex items-center gap-3 text-xs text-gray-500">
+              <span className="inline-flex items-center gap-1"><Coffee size={12} /> Breakfast</span>
+              <span className="inline-flex items-center gap-1"><Sandwich size={12} /> Lunch</span>
+              <span className="inline-flex items-center gap-1"><Utensils size={12} /> Dinner</span>
+              <span className="inline-flex items-center gap-1"><Moon size={12} /> Snack</span>
+            </div>
           </div>
 
           {formError && (
@@ -135,7 +138,6 @@ function FoodLogForm({ food, onSubmit, onCancel, isSubmitting = false }) {
             </p>
           )}
 
-          {/* Calculated Nutrition Preview */}
           <div className="bg-gray-50 rounded-lg p-4 mb-6">
             <h4 className="text-sm font-medium text-gray-700 mb-3">
               Nutrition for {quantityNum}g
@@ -160,7 +162,6 @@ function FoodLogForm({ food, onSubmit, onCancel, isSubmitting = false }) {
             </div>
           </div>
 
-          {/* Action Buttons */}
           <div className="flex space-x-3">
             <button
               type="button"

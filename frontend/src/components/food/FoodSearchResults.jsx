@@ -1,5 +1,6 @@
-import FoodItemCard from './FoodItemCard';
+﻿import FoodItemCard from './FoodItemCard';
 import { ErrorState, Skeleton } from '../ui';
+import { ICON_EMOJIS } from '../../constants/icons';
 
 /**
  * FoodSearchResults Component
@@ -13,7 +14,6 @@ import { ErrorState, Skeleton } from '../ui';
  * - onSelectFood: Function called when user selects a food
  */
 function FoodSearchResults({ foods = [], isLoading, isError, error, onSelectFood }) {
-  // Loading State
   if (isLoading) {
     return (
       <div className="py-4">
@@ -31,16 +31,14 @@ function FoodSearchResults({ foods = [], isLoading, isError, error, onSelectFood
     );
   }
 
-  // Error State
   if (isError) {
     return <ErrorState title="Error loading foods" error={error} />;
   }
 
-  // No Results State
   if (!foods || foods.length === 0) {
     return (
       <div className="bg-gray-50 border border-gray-200 rounded-lg p-8 text-center">
-        <div className="text-5xl mb-4">🔍</div>
+        <div className="text-5xl mb-4">{ICON_EMOJIS.search}</div>
         <h3 className="text-lg font-semibold text-gray-800 mb-2">
           No Foods Found
         </h3>
@@ -54,17 +52,14 @@ function FoodSearchResults({ foods = [], isLoading, isError, error, onSelectFood
     );
   }
 
-  // Results Grid
   return (
     <div>
-      {/* Results Count */}
       <div className="mb-4">
         <p className="text-sm text-gray-600">
           Found <span className="font-semibold text-gray-900">{foods.length}</span> foods
         </p>
       </div>
 
-      {/* Food Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {foods.map((food) => (
           <FoodItemCard

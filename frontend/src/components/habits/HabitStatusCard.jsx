@@ -1,4 +1,6 @@
-import React from 'react';
+﻿import React from 'react';
+import { CheckCircle2, Circle, Clock3 } from 'lucide-react';
+import { normalizeEmojiText } from '../../constants/icons';
 
 /**
  * HabitStatusCard Component (Day 12)
@@ -38,6 +40,7 @@ function HabitStatusCard({
   completionText = "Completed today!",
   incompleteText = "Not completed yet"
 }) {
+  const displayIcon = normalizeEmojiText(icon);
 
   if (isLoading) {
     return (
@@ -64,45 +67,41 @@ function HabitStatusCard({
       `}
     >
       <div className="flex items-center justify-between">
-        {/* Left side: Habit info */}
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-2xl">{icon}</span>
+            <span className="text-2xl">{displayIcon}</span>
             <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
           </div>
           <p className="text-sm text-gray-600 mb-3">{description}</p>
           
-          {/* Status text */}
           <div className="flex items-center gap-2">
             {isComplete ? (
               <>
-                <span className="text-green-600 font-medium text-sm">✓</span>
+                <CheckCircle2 size={14} className="text-green-600" />
                 <span className="text-green-700 font-medium text-sm">{completionText}</span>
               </>
             ) : (
               <>
-                <span className="text-gray-400 font-medium text-sm">○</span>
+                <Circle size={14} className="text-gray-400" />
                 <span className="text-gray-600 text-sm">{incompleteText}</span>
               </>
             )}
           </div>
         </div>
 
-        {/* Right side: Visual indicator */}
         <div className="ml-4">
           {isComplete ? (
             <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center shadow-lg animate-bounce">
-              <span className="text-white text-3xl font-bold">✓</span>
+              <CheckCircle2 size={28} className="text-white" />
             </div>
           ) : (
             <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center">
-              <span className="text-gray-400 text-3xl font-bold">×</span>
+              <Clock3 size={26} className="text-gray-400" />
             </div>
           )}
         </div>
       </div>
 
-      {/* Progress indicator */}
       <div className="mt-4 h-2 bg-gray-200 rounded-full overflow-hidden">
         <div 
           className={`h-full transition-all duration-500 ${

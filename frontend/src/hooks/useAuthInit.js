@@ -31,34 +31,23 @@ const useAuthInit = () => {
 
   useEffect(() => {
     const initializeAuth = async () => {
-      // If user appears to be authenticated (has tokens in store)
       if (isAuthenticated && accessToken) {
         try {
-          // Validate the session by fetching current user
-          console.log('🔄 Validating stored session...');
           const userData = await authService.getCurrentUser();
-          
-          // Session is valid - update user data in store
-          console.log('✅ Session valid:', userData.email);
+
           setUser(userData);
-          
+
         } catch (error) {
-          // Session is invalid (401, expired token, etc.)
-          console.log('❌ Session invalid, logging out');
           logout();
         }
-      } else {
-        // No stored session - user is not logged in
-        console.log('ℹ️ No stored session found');
       }
-      
-      // Mark initialization as complete
+
       setIsLoading(false);
       setIsReady(true);
     };
 
     initializeAuth();
-  }, []); // Run once on mount
+  }, []);
 
   return { isLoading, isReady };
 };

@@ -38,7 +38,6 @@ export const logWater = async (waterData) => {
  * @returns {Promise} Daily hydration summary
  */
 export const getDailyHydration = async (date = null) => {
-  // Use provided date or default to today
   const targetDate = date || new Date().toISOString().split('T')[0];
   
   const response = await api.get('/hydration/daily', {
@@ -60,8 +59,6 @@ export const getDailyHydration = async (date = null) => {
  */
 export const getHydrationHistory = async () => {
   const response = await api.get('/hydration/history');
-  // Backend returns paginated response with { items, total, skip, limit, has_more }
-  // We only need the items array for the frontend
   return response.data.items || [];
 };
 

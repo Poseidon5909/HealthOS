@@ -1,6 +1,7 @@
-import { memo } from 'react';
+﻿import { memo } from 'react';
 import { motion } from 'framer-motion';
 import { Card } from '../ui';
+import { ICON_EMOJIS } from '../../constants/icons';
 
 /**
  * HydrationCard Component
@@ -16,7 +17,6 @@ import { Card } from '../ui';
  */
 
 function HydrationCard({ hydration }) {
-  // Handle empty data
   if (!hydration) {
     return (
       <Card hoverable>
@@ -32,11 +32,9 @@ function HydrationCard({ hydration }) {
     progress_percentage = 0 
   } = hydration;
 
-  // Calculate glasses (assuming 250ml per glass)
   const glassesConsumed = Math.floor(consumed_ml / 250);
   const glassesTarget = Math.floor(target_ml / 250);
 
-  // Progress bar color based on completion
   const progressColor = progress_percentage >= 100 
     ? 'bg-green-500' 
     : progress_percentage >= 50 
@@ -45,13 +43,11 @@ function HydrationCard({ hydration }) {
 
   return (
     <Card hoverable>
-      {/* Header */}
       <div className="mb-4 flex items-center justify-between">
         <h3 className="text-lg font-semibold text-gray-800">Hydration</h3>
-        <span className="rounded-full bg-sky-100 px-2 py-1 text-xs font-semibold text-sky-700">💧 Water</span>
+        <span className="rounded-full bg-sky-100 px-2 py-1 text-xs font-semibold text-sky-700">{ICON_EMOJIS.water} Water</span>
       </div>
       
-      {/* Main Display */}
       <div className="flex items-center justify-center mb-4">
         <div className="text-center">
           <div className="text-4xl font-bold text-blue-600">
@@ -63,7 +59,6 @@ function HydrationCard({ hydration }) {
         </div>
       </div>
       
-      {/* Progress Bar */}
       <div className="mb-3">
         <div className="w-full bg-gray-200 rounded-full h-3" role="progressbar" aria-label="Hydration progress" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(progress_percentage)}>
           <motion.div
@@ -76,7 +71,6 @@ function HydrationCard({ hydration }) {
         </div>
       </div>
       
-      {/* Details */}
       <div className="space-y-2 text-sm">
         <div className="flex justify-between text-gray-600">
           <span>Consumed</span>
@@ -92,10 +86,9 @@ function HydrationCard({ hydration }) {
         </div>
       </div>
       
-      {/* Motivational Message */}
       {progress_percentage >= 100 && (
         <div className="mt-4 text-center text-sm text-green-600 font-medium">
-          🎉 Daily goal achieved!
+          {ICON_EMOJIS.celebration} Daily goal achieved!
         </div>
       )}
     </Card>

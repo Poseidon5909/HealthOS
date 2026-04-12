@@ -1,4 +1,3 @@
-# services/workout_service.py
 
 from sqlalchemy.orm import Session
 from datetime import date
@@ -18,7 +17,6 @@ class WorkoutService:
         if not exercise:
             raise HTTPException(status_code=404, detail="Exercise not found")
         
-        # Validate duration
         if duration_minutes < 1:
             raise HTTPException(status_code=400, detail="Duration must be at least 1 minute")
         if duration_minutes > 720:
@@ -28,7 +26,6 @@ class WorkoutService:
         if not user_profile:
             raise HTTPException(status_code=404, detail="User profile not found")
 
-        # Convert minutes to hours
         duration_hours = duration_minutes / 60
 
         # MET Formula
@@ -76,7 +73,6 @@ class WorkoutService:
     def update_log(db: Session, user_id: int, log_id: int, exercise_id: int = None, duration_minutes: int = None):
         log = WorkoutService.get_by_id(db, user_id, log_id)
         
-        # Update exercise_id or duration if provided
         if exercise_id is not None:
             exercise = db.query(Exercise).filter(Exercise.id == exercise_id).first()
             if not exercise:
@@ -86,7 +82,7 @@ class WorkoutService:
         if duration_minutes is not None:
             log.duration_minutes = duration_minutes
         
-        # Recalculate calories
+
         exercise = db.query(Exercise).filter(Exercise.id == log.exercise_id).first()
         user_profile = db.query(UserProfile).filter(UserProfile.user_id == user_id).first()
         
@@ -124,10 +120,8 @@ class WorkoutService:
         if end_date:
             query = query.filter(WorkoutLog.date <= end_date)
         
-        # Get total count
         total = query.count()
         
-        # Apply pagination and ordering
         items = query.order_by(WorkoutLog.date.desc(), WorkoutLog.created_at.desc())\
                     .offset(skip)\
                     .limit(limit)\
@@ -153,10 +147,8 @@ class WorkoutService:
         if category:
             query = query.filter(Exercise.category.ilike(f"%{category}%"))
         
-        # Get total count
         total = query.count()
         
-        # Apply pagination and ordering
         items = query.order_by(Exercise.name)\
                     .offset(skip)\
                     .limit(limit)\

@@ -1,4 +1,5 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
+import { Bolt, Droplets, Plus } from 'lucide-react';
 
 /**
  * WaterLogButtons Component
@@ -21,25 +22,21 @@ function WaterLogButtons({ onLogWater, isLogging = false }) {
   const [customAmount, setCustomAmount] = useState('');
   const [showCustomInput, setShowCustomInput] = useState(false);
 
-  // Predefined water amounts (in ml)
   const quickAmounts = [
-    { ml: 250, label: '250ml', icon: '🥤', description: '1 glass' },
-    { ml: 500, label: '500ml', icon: '💧', description: '2 glasses' },
-    { ml: 750, label: '750ml', icon: '🚰', description: '3 glasses' },
-    { ml: 1000, label: '1L', icon: '🍶', description: 'Bottle' }
+    { ml: 250, label: '250ml', iconClass: 'text-sky-500', description: '1 glass' },
+    { ml: 500, label: '500ml', iconClass: 'text-blue-500', description: '2 glasses' },
+    { ml: 750, label: '750ml', iconClass: 'text-indigo-500', description: '3 glasses' },
+    { ml: 1000, label: '1L', iconClass: 'text-cyan-600', description: 'Bottle' }
   ];
 
-  // Handle quick add button click
   const handleQuickAdd = async (amount) => {
     await onLogWater(amount);
   };
 
-  // Handle custom amount submission
   const handleCustomSubmit = async (e) => {
     e.preventDefault();
     const amount = parseInt(customAmount);
     
-    // Validate input
     if (!amount || amount <= 0 || amount > 5000) {
       alert('Please enter a valid amount between 1 and 5000 ml');
       return;
@@ -52,17 +49,15 @@ function WaterLogButtons({ onLogWater, isLogging = false }) {
 
   return (
     <div className="bg-white rounded-lg shadow-md p-6">
-      {/* Header */}
       <h3 className="text-lg font-semibold text-gray-800 mb-4">
-        ⚡ Quick Add Water
+        <span className="inline-flex items-center gap-2"><Bolt size={18} /> Quick Add Water</span>
       </h3>
       <p className="text-sm text-gray-600 mb-6">
         Click a button to quickly log your water intake
       </p>
 
-      {/* Quick Add Buttons Grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
-        {quickAmounts.map(({ ml, label, icon, description }) => (
+        {quickAmounts.map(({ ml, label, iconClass, description }) => (
           <button
             key={ml}
             onClick={() => handleQuickAdd(ml)}
@@ -75,21 +70,20 @@ function WaterLogButtons({ onLogWater, isLogging = false }) {
               }
             `}
           >
-            <div className="text-3xl mb-2">{icon}</div>
+            <div className="mb-2 flex justify-center"><Droplets className={iconClass} size={28} /></div>
             <div className="font-bold text-gray-900 text-lg">{label}</div>
             <div className="text-xs text-gray-600 mt-1">{description}</div>
           </button>
         ))}
       </div>
 
-      {/* Custom Amount Section */}
       {!showCustomInput ? (
         <button
           onClick={() => setShowCustomInput(true)}
           disabled={isLogging}
           className="w-full py-3 rounded-lg border-2 border-dashed border-gray-300 text-gray-600 hover:border-blue-500 hover:text-blue-600 hover:bg-blue-50 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          + Add Custom Amount
+          <span className="inline-flex items-center gap-2"><Plus size={16} /> Add Custom Amount</span>
         </button>
       ) : (
         <form onSubmit={handleCustomSubmit} className="space-y-3">
@@ -137,7 +131,6 @@ function WaterLogButtons({ onLogWater, isLogging = false }) {
         </form>
       )}
 
-      {/* Loading Indicator */}
       {isLogging && (
         <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
           <div className="flex items-center justify-center">

@@ -1,4 +1,5 @@
-import MealSummaryCard from './MealSummaryCard';
+﻿import MealSummaryCard from './MealSummaryCard';
+import { Coffee, Moon, Sandwich, Utensils } from 'lucide-react';
 
 /**
  * MealSection Component
@@ -14,19 +15,17 @@ import MealSummaryCard from './MealSummaryCard';
  * - onAddFood: Function to add food to this meal
  */
 function MealSection({ mealType, foodLogs = [], summary, onDelete, onEdit, onAddFood }) {
-  // Meal configuration
   const mealConfig = {
-    breakfast: { icon: '🍳', label: 'Breakfast', color: 'orange' },
-    lunch: { icon: '🍱', label: 'Lunch', color: 'blue' },
-    dinner: { icon: '🍽️', label: 'Dinner', color: 'purple' },
-    snack: { icon: '🍿', label: 'Snacks', color: 'green' }
+    breakfast: { icon: <Coffee size={26} className="text-orange-600" />, label: 'Breakfast', color: 'orange' },
+    lunch: { icon: <Sandwich size={26} className="text-blue-600" />, label: 'Lunch', color: 'blue' },
+    dinner: { icon: <Utensils size={26} className="text-purple-600" />, label: 'Dinner', color: 'purple' },
+    snack: { icon: <Moon size={26} className="text-green-600" />, label: 'Snacks', color: 'green' }
   };
 
   const config = mealConfig[mealType] || mealConfig.breakfast;
 
   return (
     <div className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden">
-      {/* Meal Header */}
       <div className={`bg-${config.color}-50 border-b border-${config.color}-100 p-4`}>
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
@@ -39,7 +38,6 @@ function MealSection({ mealType, foodLogs = [], summary, onDelete, onEdit, onAdd
             </div>
           </div>
 
-          {/* Add Food Button */}
           <button
             onClick={() => onAddFood(mealType)}
             className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium"
@@ -49,9 +47,7 @@ function MealSection({ mealType, foodLogs = [], summary, onDelete, onEdit, onAdd
         </div>
       </div>
 
-      {/* Food Logs List */}
       <div className="p-4">
-        {/* Meal Summary Card */}
         <MealSummaryCard mealType={mealType} summary={summary} />
         {foodLogs.length === 0 ? (
           <div className="text-center py-6 text-gray-500">
@@ -65,13 +61,11 @@ function MealSection({ mealType, foodLogs = [], summary, onDelete, onEdit, onAdd
                 key={log.id}
                 className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
               >
-                {/* Food Info */}
                 <div className="flex-1">
                   <h4 className="font-medium text-gray-900">{log.food_name}</h4>
                   <p className="text-sm text-gray-600">{log.quantity_grams}g</p>
                 </div>
 
-                {/* Nutrition */}
                 <div className="flex items-center space-x-4 mr-4">
                   <div className="text-center">
                     <div className="text-xs text-gray-500">Cal</div>
@@ -99,9 +93,7 @@ function MealSection({ mealType, foodLogs = [], summary, onDelete, onEdit, onAdd
                   </div>
                 </div>
 
-                {/* Action Buttons */}
                 <div className="flex items-center space-x-2">
-                  {/* Edit Button */}
                   <button
                     onClick={() => onEdit(log)}
                     className="text-purple-500 hover:text-purple-700 transition-colors"
@@ -112,7 +104,6 @@ function MealSection({ mealType, foodLogs = [], summary, onDelete, onEdit, onAdd
                     </svg>
                   </button>
 
-                  {/* Delete Button */}
                   <button
                     onClick={() => onDelete(log.id)}
                     className="text-red-500 hover:text-red-700 transition-colors"

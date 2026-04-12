@@ -20,11 +20,13 @@ import api from './api';
  * @returns {Promise} Search results with food items
  */
 export const searchFoods = async (query, page = 1, pageSize = 20) => {
+  const skip = Math.max(0, (page - 1) * pageSize);
+
   const response = await api.get('/food/search', {
     params: {
       query,
-      page,
-      page_size: pageSize
+      skip,
+      limit: pageSize,
     }
   });
   return response.data;
@@ -36,8 +38,17 @@ export const searchFoods = async (query, page = 1, pageSize = 20) => {
  * @returns {Promise} Today's food logs grouped by meal type
  */
 export const getTodayFoodLogs = async () => {
-  const response = await api.get('/food-log/today');
-  return response.data;
+  const today = new Date().toISOString().split('T')[0];
+  const response = await api.get('/food-log/history', {
+    params: {
+      start_date: today,
+      end_date: today,
+      skip: 0,
+      limit: 100,
+    },
+  });
+
+  return response.data?.items || [];
 };
 
 /**

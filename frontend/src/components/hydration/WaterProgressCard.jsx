@@ -1,3 +1,5 @@
+﻿import { Droplets, Flame, Trophy, Waves } from 'lucide-react';
+
 /**
  * WaterProgressCard Component
  * 
@@ -14,7 +16,6 @@
  */
 
 function WaterProgressCard({ dailySummary, isLoading }) {
-  // Show loading state
   if (isLoading) {
     return (
       <div className="bg-white rounded-lg shadow-md p-6 animate-pulse">
@@ -28,11 +29,10 @@ function WaterProgressCard({ dailySummary, isLoading }) {
     );
   }
 
-  // Handle empty data
   if (!dailySummary) {
     return (
       <div className="bg-white rounded-lg shadow-md p-6">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">💧 Daily Water Progress</h3>
+        <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2"><Droplets size={18} /> Daily Water Progress</h3>
         <p className="text-gray-500 text-sm">No hydration data available</p>
       </div>
     );
@@ -45,11 +45,9 @@ function WaterProgressCard({ dailySummary, isLoading }) {
     progress_percentage = 0 
   } = dailySummary;
 
-  // Calculate glasses (assuming 250ml per glass)
   const glassesConsumed = (total_consumed_ml / 250).toFixed(1);
   const glassesTarget = (water_target_ml / 250).toFixed(1);
 
-  // Progress bar color based on completion
   const getProgressColor = () => {
     if (progress_percentage >= 100) return 'bg-green-500';
     if (progress_percentage >= 75) return 'bg-blue-500';
@@ -57,25 +55,37 @@ function WaterProgressCard({ dailySummary, isLoading }) {
     return 'bg-blue-300';
   };
 
-  // Status message
-  const getStatusMessage = () => {
+  const getStatusMeta = () => {
     if (progress_percentage >= 100) {
-      return '🎉 Great job! You\'ve reached your hydration goal!';
+      return {
+        icon: <Trophy size={16} className="text-emerald-600" />,
+        text: "Great job! You've reached your hydration goal!"
+      };
     }
     if (progress_percentage >= 75) {
-      return '💪 Almost there! Keep it up!';
+      return {
+        icon: <Flame size={16} className="text-orange-500" />,
+        text: 'Almost there! Keep it up!'
+      };
     }
     if (progress_percentage >= 50) {
-      return '👍 Good progress! Stay hydrated!';
+      return {
+        icon: <Waves size={16} className="text-blue-600" />,
+        text: 'Good progress! Stay hydrated!'
+      };
     }
-    return '💧 Start drinking water to reach your goal!';
+    return {
+      icon: <Droplets size={16} className="text-blue-600" />,
+      text: 'Start drinking water to reach your goal!'
+    };
   };
+
+  const statusMeta = getStatusMeta();
 
   return (
     <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
-      {/* Header */}
       <div className="flex items-center justify-between mb-6">
-        <h3 className="text-lg font-semibold text-gray-800">💧 Daily Water Progress</h3>
+        <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2"><Droplets size={18} /> Daily Water Progress</h3>
         <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
           progress_percentage >= 100 
             ? 'bg-green-100 text-green-800' 
@@ -85,7 +95,6 @@ function WaterProgressCard({ dailySummary, isLoading }) {
         </span>
       </div>
       
-      {/* Main Display - Large Numbers */}
       <div className="flex items-center justify-center mb-6">
         <div className="text-center">
           <div className="text-5xl font-bold text-blue-600 mb-2">
@@ -100,7 +109,6 @@ function WaterProgressCard({ dailySummary, isLoading }) {
         </div>
       </div>
       
-      {/* Progress Bar */}
       <div className="mb-4">
         <div className="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
           <div
@@ -110,14 +118,13 @@ function WaterProgressCard({ dailySummary, isLoading }) {
         </div>
       </div>
       
-      {/* Status Message */}
       <div className="mb-4 p-3 bg-blue-50 rounded-lg">
-        <p className="text-sm text-blue-800 text-center font-medium">
-          {getStatusMessage()}
+        <p className="text-sm text-blue-800 text-center font-medium inline-flex items-center gap-2 w-full justify-center">
+          {statusMeta.icon}
+          {statusMeta.text}
         </p>
       </div>
       
-      {/* Details Grid */}
       <div className="grid grid-cols-2 gap-4">
         <div className="bg-gray-50 rounded-lg p-3">
           <div className="text-xs text-gray-600 mb-1">Consumed</div>
@@ -129,7 +136,7 @@ function WaterProgressCard({ dailySummary, isLoading }) {
           <div className={`text-lg font-bold ${
             remaining_ml > 0 ? 'text-orange-600' : 'text-green-600'
           }`}>
-            {remaining_ml > 0 ? `${remaining_ml} ml` : 'Goal reached! 🎉'}
+            {remaining_ml > 0 ? `${remaining_ml} ml` : 'Goal reached!'}
           </div>
         </div>
       </div>

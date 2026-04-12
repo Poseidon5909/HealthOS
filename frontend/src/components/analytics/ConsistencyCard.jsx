@@ -1,4 +1,5 @@
-import { memo } from 'react';
+﻿import { memo } from 'react';
+import { Target, ThumbsUp, Trophy, Zap } from 'lucide-react';
 import ConsistencyChart from './ConsistencyChart';
 
 /**
@@ -40,6 +41,32 @@ function ConsistencyCard({
   percentage,
   color = 'blue' 
 }) {
+  const getFeedback = () => {
+    if (percentage >= 90) {
+      return {
+        icon: <Trophy size={14} className="text-emerald-600" />,
+        text: 'Excellent consistency!'
+      };
+    }
+    if (percentage >= 70) {
+      return {
+        icon: <ThumbsUp size={14} className="text-blue-600" />,
+        text: 'Great job! Keep it up!'
+      };
+    }
+    if (percentage >= 50) {
+      return {
+        icon: <Zap size={14} className="text-amber-600" />,
+        text: 'Good start, aim higher!'
+      };
+    }
+    return {
+      icon: <Target size={14} className="text-red-600" />,
+      text: "Let's improve tracking!"
+    };
+  };
+
+  const feedback = getFeedback();
   
   /**
    * Determine color class based on percentage
@@ -68,7 +95,6 @@ function ConsistencyCard({
 
   return (
     <div className={`border-2 rounded-lg p-6 ${getColorClass()} transition-all duration-300 hover:shadow-lg`}>
-      {/* Header with icon and title */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
           <span className="text-3xl">{icon}</span>
@@ -76,7 +102,6 @@ function ConsistencyCard({
         </div>
       </div>
 
-      {/* Consistency percentage - main metric */}
       <div className="mb-4">
         <div className={`text-4xl font-bold ${getPercentageColor()}`}>
           {percentage.toFixed(1)}%
@@ -86,7 +111,6 @@ function ConsistencyCard({
         </p>
       </div>
 
-      {/* Days logged information */}
       <div className="mb-4">
         <p className="text-sm text-gray-700">
           <span className="font-semibold">{daysLogged}</span> out of{' '}
@@ -94,7 +118,6 @@ function ConsistencyCard({
         </p>
       </div>
 
-      {/* Visual progress bar */}
       <div className="mb-4">
         <div
           className="w-full bg-gray-200 rounded-full h-3 overflow-hidden"
@@ -111,15 +134,11 @@ function ConsistencyCard({
         </div>
       </div>
 
-      {/* Consistency chart visualization */}
       <ConsistencyChart percentage={percentage} size={80} />
 
-      {/* Motivational message based on performance */}
-      <div className="mt-4 text-xs text-gray-600 italic">
-        {percentage >= 90 && "🎉 Excellent consistency!"}
-        {percentage >= 70 && percentage < 90 && "👍 Great job! Keep it up!"}
-        {percentage >= 50 && percentage < 70 && "💪 Good start, aim higher!"}
-        {percentage < 50 && "🎯 Let's improve tracking!"}
+      <div className="mt-4 text-xs text-gray-600 italic flex items-center gap-2">
+        {feedback.icon}
+        {feedback.text}
       </div>
     </div>
   );

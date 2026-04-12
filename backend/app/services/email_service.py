@@ -1,8 +1,11 @@
+import logging
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from app.core.config import settings
 from app.core.security import create_email_verification_token, create_password_reset_token
+
+logger = logging.getLogger(__name__)
 
 
 class EmailService:
@@ -23,7 +26,7 @@ class EmailService:
         """
         # Skip sending if SMTP is not configured
         if not settings.SMTP_USERNAME or not settings.SMTP_PASSWORD:
-            print(f"[EMAIL NOT SENT] SMTP not configured. Email to {to_email}: {subject}")
+            logger.warning(f"SMTP not configured. Email to {to_email}: {subject}")
             return False
         
         try:
@@ -47,11 +50,11 @@ class EmailService:
                 server.login(settings.SMTP_USERNAME, settings.SMTP_PASSWORD)
                 server.send_message(message)
             
-            print(f"[EMAIL SENT] To: {to_email}, Subject: {subject}")
+            logger.info(f"Email sent to {to_email}, subject: {subject}")
             return True
         
         except Exception as e:
-            print(f"[EMAIL ERROR] Failed to send to {to_email}: {str(e)}")
+            logger.error(f"Failed to send email to {to_email}: {str(e)}")
             return False
 
     @staticmethod

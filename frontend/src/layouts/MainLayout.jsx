@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import Navbar from '../components/Navbar';
 import Sidebar from '../components/Sidebar';
 import PageContainer from '../components/PageContainer';
@@ -27,17 +27,17 @@ import PageContainer from '../components/PageContainer';
  *    Layout logic separate from page business logic
  * 
  * Layout Structure:
- * ┌─────────────────────────────────────┐
- * │  Sidebar (fixed left)               │
- * │  ┌──────────────────────────────┐   │
- * │  │  Navbar (top)                │   │
- * │  │  ┌────────────────────────┐  │   │
- * │  │  │  PageContainer         │  │   │
- * │  │  │  (your page content)   │  │   │
- * │  │  │                        │  │   │
- * │  │  └────────────────────────┘  │   │
- * │  └──────────────────────────────┘   │
- * └─────────────────────────────────────┘
+ * â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+ * â”‚  Sidebar (fixed left)               â”‚
+ * â”‚  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”   â”‚
+ * â”‚  â”‚  Navbar (top)                â”‚   â”‚
+ * â”‚  â”‚  â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”  â”‚   â”‚
+ * â”‚  â”‚  â”‚  PageContainer         â”‚  â”‚   â”‚
+ * â”‚  â”‚  â”‚  (your page content)   â”‚  â”‚   â”‚
+ * â”‚  â”‚  â”‚                        â”‚  â”‚   â”‚
+ * â”‚  â”‚  â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜  â”‚   â”‚
+ * â”‚  â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜   â”‚
+ * â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
  * 
  * Props:
  * - children: The page content to render
@@ -54,15 +54,11 @@ function MainLayout({ children }) {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Sidebar - Fixed on left */}
       <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
-      {/* Main content area - Offset by sidebar width (w-64 = 256px) */}
       <div className="md:ml-64">
-        {/* Top Navbar */}
         <Navbar onOpenMenu={() => setIsSidebarOpen(true)} />
 
-        {/* Page Content with Container */}
         <main className="min-h-[calc(100vh-73px)]">
           <PageContainer>
             {children}

@@ -13,7 +13,6 @@ import MealSection from './MealSection';
  * - onAddFood: Function to add food to a meal
  */
 function FoodLogList({ foodLogs = [], mealSummary = {}, onDeleteLog, onEditLog, onAddFood }) {
-  // Organize logs by meal type
   const organizeByMeal = () => {
     const organized = {
       breakfast: [],

@@ -1,4 +1,4 @@
-import { lazy, Suspense } from 'react';
+﻿import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'react-hot-toast';
@@ -7,7 +7,6 @@ import useAuthStore from './store/authStore';
 import useAuthInit from './hooks/useAuthInit';
 import { Loader } from './components/ui';
 
-// Layout
 import MainLayout from './layouts/MainLayout';
 
 const Login = lazy(() => import('./pages/Login/Login'));
@@ -21,7 +20,6 @@ const Habits = lazy(() => import('./pages/Habits'));
 const Profile = lazy(() => import('./pages/Profile'));
 const Nutrition = lazy(() => import('./pages/Nutrition'));
 
-// Protected Route Component
 function ProtectedRoute({ children }) {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   
@@ -32,7 +30,6 @@ function ProtectedRoute({ children }) {
   return children;
 }
 
-// Public Route Component (redirect to dashboard if already logged in)
 function PublicRoute({ children }) {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   
@@ -44,11 +41,8 @@ function PublicRoute({ children }) {
 }
 
 function App() {
-  // Initialize authentication on app mount
-  // This validates the stored session by calling /users/me
   const { isLoading, isReady } = useAuthInit();
 
-  // Show loading screen while validating session
   if (isLoading || !isReady) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-indigo-600 via-indigo-700 to-sky-700 px-4">
@@ -76,10 +70,8 @@ function App() {
       <BrowserRouter>
         <Suspense fallback={<Loader label="Loading page..." className="py-24" />}>
         <Routes>
-          {/* Default Route */}
           <Route path="/" element={<Navigate to="/login" replace />} />
           
-          {/* Public Routes */}
           <Route
             path="/login"
             element={
@@ -97,7 +89,6 @@ function App() {
             }
           />
           
-          {/* Protected Routes - All wrapped in MainLayout */}
           <Route
             path="/dashboard"
             element={
@@ -179,7 +170,6 @@ function App() {
             }
           />
           
-          {/* Catch all - redirect to login */}
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
         </Suspense>

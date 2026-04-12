@@ -1,4 +1,6 @@
+﻿import { useState } from 'react';
 import { format, parseISO } from 'date-fns';
+import { ArrowDown, ArrowUp, Scale } from 'lucide-react';
 
 /**
  * WeightHistoryList Component
@@ -20,13 +22,10 @@ import { format, parseISO } from 'date-fns';
  */
 
 function WeightHistoryList({ history = [], onDelete, deletingLogId = null, isLoading = false }) {
-  console.log('📜 WeightHistoryList props:', { historyLength: history?.length, onDelete: !!onDelete, deletingLogId, isLoading });
-  
-  // Show loading state
   if (isLoading) {
     return (
       <div className="bg-white rounded-lg shadow-md p-6">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">📋 Weight History</h3>
+        <h3 className="text-lg font-semibold text-gray-800 mb-4">Weight History</h3>
         <div className="space-y-3 animate-pulse">
           {[1, 2, 3, 4].map((i) => (
             <div key={i} className="h-20 bg-gray-200 rounded"></div>
@@ -36,13 +35,14 @@ function WeightHistoryList({ history = [], onDelete, deletingLogId = null, isLoa
     );
   }
 
-  // Show empty state
   if (!history || history.length === 0) {
     return (
       <div className="bg-white rounded-lg shadow-md p-6">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">📋 Weight History</h3>
+        <h3 className="text-lg font-semibold text-gray-800 mb-4">Weight History</h3>
         <div className="text-center py-12">
-          <div className="text-6xl mb-4">⚖️</div>
+          <div className="mb-4 flex justify-center">
+            <Scale className="text-gray-500" size={52} />
+          </div>
           <p className="text-gray-600 mb-2">No weight logs yet</p>
           <p className="text-sm text-gray-500">Start tracking your weight above</p>
         </div>
@@ -50,14 +50,12 @@ function WeightHistoryList({ history = [], onDelete, deletingLogId = null, isLoa
     );
   }
 
-  // Sort history by date (newest first for display)
   const sortedHistory = [...history].sort((a, b) => 
     new Date(b.date) - new Date(a.date)
   );
 
-  // Calculate weight change from previous entry
   const getWeightChange = (index) => {
-    if (index === sortedHistory.length - 1) return null; // First entry (oldest), no previous
+    if (index === sortedHistory.length - 1) return null;
     
     const current = sortedHistory[index].weight;
     const previous = sortedHistory[index + 1].weight;
@@ -72,15 +70,13 @@ function WeightHistoryList({ history = [], onDelete, deletingLogId = null, isLoa
 
   return (
     <div className="bg-white rounded-lg shadow-md p-6">
-      {/* Header */}
       <div className="flex items-center justify-between mb-6">
-        <h3 className="text-lg font-semibold text-gray-800">📋 Weight History</h3>
+        <h3 className="text-lg font-semibold text-gray-800">Weight History</h3>
         <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-semibold">
           {history.length} entr{history.length !== 1 ? 'ies' : 'y'}
         </span>
       </div>
 
-      {/* History List */}
       <div className="space-y-3">
         {sortedHistory.map((log, index) => {
           const change = getWeightChange(index);
@@ -98,7 +94,6 @@ function WeightHistoryList({ history = [], onDelete, deletingLogId = null, isLoa
         })}
       </div>
 
-      {/* Summary Footer */}
       {history.length > 1 && (
         <div className="mt-6 pt-4 border-t border-gray-200">
           <div className="grid grid-cols-2 gap-4 text-sm">
@@ -140,9 +135,8 @@ function WeightHistoryItem({ log, change, onDelete, isDeleting }) {
       ${isDeleting ? 'opacity-50 animate-pulse' : 'hover:shadow-md hover:border-blue-300'}
     `}>
       <div className="flex items-center justify-between">
-        {/* Left - Weight */}
         <div className="flex items-center space-x-4">
-          <div className="text-4xl">⚖️</div>
+          <Scale className="text-gray-500" size={34} />
           <div>
             <div className="flex items-center space-x-2">
               <span className="text-2xl font-bold text-gray-900">
@@ -150,7 +144,6 @@ function WeightHistoryItem({ log, change, onDelete, isDeleting }) {
               </span>
               <span className="text-gray-600">kg</span>
               
-              {/* Weight Change Badge */}
               {change && change.value !== 0 && (
                 <span className={`
                   text-xs font-semibold px-2 py-1 rounded-full
@@ -159,7 +152,7 @@ function WeightHistoryItem({ log, change, onDelete, isDeleting }) {
                     : 'bg-red-100 text-red-800'
                   }
                 `}>
-                  {change.isDecrease ? '↓' : '↑'} {Math.abs(change.value).toFixed(1)} kg
+                  {change.isDecrease ? <ArrowDown className="inline" size={12} /> : <ArrowUp className="inline" size={12} />} {Math.abs(change.value).toFixed(1)} kg
                 </span>
               )}
             </div>
@@ -169,7 +162,6 @@ function WeightHistoryItem({ log, change, onDelete, isDeleting }) {
           </div>
         </div>
 
-        {/* Right - Date and Actions */}
         <div className="flex items-center space-x-3">
           <div className="text-right">
             <div className="font-semibold text-gray-900 text-sm">
@@ -180,7 +172,6 @@ function WeightHistoryItem({ log, change, onDelete, isDeleting }) {
             </div>
           </div>
 
-          {/* Delete Button */}
           {!showConfirm ? (
             <button
               onClick={() => setShowConfirm(true)}
@@ -213,7 +204,6 @@ function WeightHistoryItem({ log, change, onDelete, isDeleting }) {
         </div>
       </div>
 
-      {/* Confirmation Message */}
       {showConfirm && (
         <div className="mt-3 p-2 bg-red-50 border border-red-200 rounded text-sm text-red-800">
           Are you sure you want to delete this weight entry?
@@ -222,8 +212,5 @@ function WeightHistoryItem({ log, change, onDelete, isDeleting }) {
     </div>
   );
 }
-
-// Add useState import at the top
-import { useState } from 'react';
 
 export default WeightHistoryList;

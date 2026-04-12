@@ -1,4 +1,5 @@
-import { memo, useMemo } from 'react';
+﻿import { memo, useMemo } from 'react';
+import { Dumbbell, Droplets, Scale, Utensils } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { getConsistencyAnalytics, PROGRESS_QUERY_KEYS } from '../../services/progressService';
 import ConsistencyCard from './ConsistencyCard';
@@ -54,10 +55,10 @@ function ConsistencyOverview({ days = 30 }) {
   });
 
   const categoryConfigs = useMemo(() => ([
-    { key: 'food_logging', title: 'Food Logging', icon: '🍽️' },
-    { key: 'workout_logging', title: 'Workout Logging', icon: '💪' },
-    { key: 'hydration_logging', title: 'Hydration Logging', icon: '💧' },
-    { key: 'weight_logging', title: 'Weight Logging', icon: '⚖️' }
+    { key: 'food_logging', title: 'Food Logging', icon: <Utensils size={22} /> },
+    { key: 'workout_logging', title: 'Workout Logging', icon: <Dumbbell size={22} /> },
+    { key: 'hydration_logging', title: 'Hydration Logging', icon: <Droplets size={22} /> },
+    { key: 'weight_logging', title: 'Weight Logging', icon: <Scale size={22} /> }
   ]), []);
 
   const overallConsistency = useMemo(() => {
@@ -69,9 +70,6 @@ function ConsistencyOverview({ days = 30 }) {
     return values.reduce((sum, value) => sum + value, 0) / values.length;
   }, [categoryConfigs, consistencyData]);
 
-  // ========================================
-  // LOADING STATE
-  // ========================================
   if (isLoading) {
     return (
       <Card>
@@ -80,21 +78,14 @@ function ConsistencyOverview({ days = 30 }) {
     );
   }
 
-  // ========================================
-  // ERROR STATE
-  // ========================================
   if (isError) {
     return <ErrorState title="Failed to load analytics" error={error} onRetry={() => refetch()} />;
   }
 
-  // ========================================
-  // SUCCESS STATE - DISPLAY ANALYTICS
-  // ========================================
   return (
     <div className="space-y-6">
       <ConsistencyOverviewHeader days={days} overallConsistency={overallConsistency} />
 
-      {/* Category Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {categoryConfigs.map((config) => {
           const categoryData = consistencyData[config.key];

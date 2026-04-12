@@ -100,10 +100,8 @@ class HydrationService:
         if end_date:
             query = query.filter(WaterLog.date <= end_date)
         
-        # Get total count
         total = query.count()
         
-        # Apply pagination and ordering
         items = query.order_by(WaterLog.date.desc(), WaterLog.created_at.desc())\
                     .offset(skip)\
                     .limit(limit)\

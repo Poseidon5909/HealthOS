@@ -1,4 +1,5 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
+import { PencilLine, Save } from 'lucide-react';
 
 /**
  * EditFoodLogModal Component
@@ -12,9 +13,9 @@ import { useState } from 'react';
  * - isSubmitting: Boolean for loading state
  */
 function EditFoodLogModal({ foodLog, onSubmit, onCancel, isSubmitting = false }) {
-  // Pre-fill form with existing values
   const [quantity, setQuantity] = useState(String(foodLog?.quantity_grams || '100'));
   const [mealType, setMealType] = useState(foodLog?.meal_type || 'breakfast');
+  const [formError, setFormError] = useState('');
 
   if (!foodLog || !foodLog.food_item) return null;
 
@@ -25,35 +26,46 @@ function EditFoodLogModal({ foodLog, onSubmit, onCancel, isSubmitting = false })
     
     const quantityNum = parseFloat(quantity);
     if (isNaN(quantityNum) || quantityNum <= 0) {
-      alert('Please enter a valid quantity');
+      setFormError('Please enter a valid quantity in grams.');
       return;
     }
 
-    // Send updated data (without food_id since we're editing, not creating)
+    if (quantityNum > 5000) {
+      setFormError('Quantity cannot exceed 5000 grams (5 kg).');
+      return;
+    }
+
+    setFormError('');
     onSubmit({
       quantity_grams: quantityNum,
       meal_type: mealType
     });
   };
 
-  // Calculate nutrition based on quantity
+  const handleQuantityChange = (e) => {
+    setQuantity(e.target.value);
+    if (formError) setFormError('');
+  };
+
   const calculateNutrition = (per100g, grams) => {
+    if (!per100g || !grams || isNaN(grams)) return 0;
     return Math.round((per100g * grams) / 100);
   };
 
-  const quantityNum = parseFloat(quantity) || 0;
-  const calculatedCalories = calculateNutrition(food.calories_per_100g, quantityNum);
-  const calculatedProtein = calculateNutrition(food.protein_per_100g, quantityNum);
-  const calculatedCarbs = calculateNutrition(food.carbs_per_100g, quantityNum);
-  const calculatedFat = calculateNutrition(food.fat_per_100g, quantityNum);
+  const quantityNum = !isNaN(parseFloat(quantity)) && parseFloat(quantity) > 0 ? parseFloat(quantity) : 0;
+  const calculatedCalories = calculateNutrition(food?.calories_per_100g, quantityNum);
+  const calculatedProtein = calculateNutrition(food?.protein_per_100g, quantityNum);
+  const calculatedCarbs = calculateNutrition(food?.carbs_per_100g, quantityNum);
+  const calculatedFat = calculateNutrition(food?.fat_per_100g, quantityNum);
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
-        {/* Header */}
         <div className="bg-purple-600 text-white p-4 rounded-t-lg">
           <div className="flex items-center justify-between">
-            <h3 className="text-xl font-semibold">✏️ Edit Entry</h3>
+            <h3 className="text-xl font-semibold flex items-center gap-2">
+              <PencilLine size={18} /> Edit Entry
+            </h3>
             <button
               onClick={onCancel}
               className="text-white hover:text-gray-200 transition-colors"
@@ -67,9 +79,12 @@ function EditFoodLogModal({ foodLog, onSubmit, onCancel, isSubmitting = false })
           <p className="text-purple-100 mt-1">{food.name}</p>
         </div>
 
-        {/* Form */}
         <form onSubmit={handleSubmit} className="p-6">
-          {/* Quantity Input */}
+          {formError && (
+            <div className="mb-6 p-3 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-sm text-red-700">{formError}</p>
+            </div>
+          )}
           <div className="mb-6">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Quantity (grams)
@@ -77,8 +92,9 @@ function EditFoodLogModal({ foodLog, onSubmit, onCancel, isSubmitting = false })
             <input
               type="number"
               value={quantity}
-              onChange={(e) => setQuantity(e.target.value)}
+              onChange={handleQuantityChange}
               min="1"
+              max="5000"
               step="1"
               required
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
@@ -89,7 +105,6 @@ function EditFoodLogModal({ foodLog, onSubmit, onCancel, isSubmitting = false })
             </p>
           </div>
 
-          {/* Meal Type Select */}
           <div className="mb-6">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Meal Type
@@ -100,14 +115,13 @@ function EditFoodLogModal({ foodLog, onSubmit, onCancel, isSubmitting = false })
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               disabled={isSubmitting}
             >
-              <option value="breakfast">🍳 Breakfast</option>
-              <option value="lunch">🍱 Lunch</option>
-              <option value="dinner">🍽️ Dinner</option>
-              <option value="snack">🍿 Snack</option>
+              <option value="breakfast">Breakfast</option>
+              <option value="lunch">Lunch</option>
+              <option value="dinner">Dinner</option>
+              <option value="snack">Snack</option>
             </select>
           </div>
 
-          {/* Updated Nutrition Preview */}
           <div className="bg-gray-50 rounded-lg p-4 mb-6">
             <h4 className="text-sm font-medium text-gray-700 mb-3">
               Updated Nutrition for {quantityNum}g
@@ -132,7 +146,6 @@ function EditFoodLogModal({ foodLog, onSubmit, onCancel, isSubmitting = false })
             </div>
           </div>
 
-          {/* Action Buttons */}
           <div className="flex space-x-3">
             <button
               type="button"
@@ -153,7 +166,7 @@ function EditFoodLogModal({ foodLog, onSubmit, onCancel, isSubmitting = false })
                   Updating...
                 </span>
               ) : (
-                '💾 Save Changes'
+                <span className="flex items-center justify-center gap-2"><Save size={16} /> Save Changes</span>
               )}
             </button>
           </div>

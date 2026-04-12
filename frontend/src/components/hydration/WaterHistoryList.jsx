@@ -1,5 +1,6 @@
-import WaterLogItem from './WaterLogItem';
+﻿import WaterLogItem from './WaterLogItem';
 import { format, parseISO, isToday, isYesterday } from 'date-fns';
+import { BarChart3, Droplets } from 'lucide-react';
 
 /**
  * WaterHistoryList Component
@@ -20,11 +21,10 @@ import { format, parseISO, isToday, isYesterday } from 'date-fns';
  */
 
 function WaterHistoryList({ history = [], onDeleteLog, deletingLogId = null, isLoading = false }) {
-  // Show loading state
   if (isLoading) {
     return (
       <div className="bg-white rounded-lg shadow-md p-6">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">📊 Hydration History</h3>
+        <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2"><BarChart3 size={18} /> Hydration History</h3>
         <div className="space-y-3 animate-pulse">
           {[1, 2, 3].map((i) => (
             <div key={i} className="h-20 bg-gray-200 rounded"></div>
@@ -34,13 +34,12 @@ function WaterHistoryList({ history = [], onDeleteLog, deletingLogId = null, isL
     );
   }
 
-  // Show empty state
   if (!history || history.length === 0) {
     return (
       <div className="bg-white rounded-lg shadow-md p-6">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">📊 Hydration History</h3>
+        <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2"><BarChart3 size={18} /> Hydration History</h3>
         <div className="text-center py-8">
-          <div className="text-6xl mb-4">💧</div>
+          <div className="mb-4 flex justify-center"><Droplets size={48} className="text-cyan-600" /></div>
           <p className="text-gray-600 mb-2">No water logs yet</p>
           <p className="text-sm text-gray-500">Start logging your water intake above</p>
         </div>
@@ -48,7 +47,6 @@ function WaterHistoryList({ history = [], onDeleteLog, deletingLogId = null, isL
     );
   }
 
-  // Group logs by date
   const groupedLogs = history.reduce((groups, log) => {
     const logDate = parseISO(log.created_at);
     const dateKey = format(logDate, 'yyyy-MM-dd');
@@ -67,12 +65,10 @@ function WaterHistoryList({ history = [], onDeleteLog, deletingLogId = null, isL
     return groups;
   }, {});
 
-  // Convert to array and sort by date (newest first)
   const sortedGroups = Object.values(groupedLogs).sort(
     (a, b) => b.date - a.date
   );
 
-  // Get date label (Today, Yesterday, or formatted date)
   const getDateLabel = (date) => {
     if (isToday(date)) return 'Today';
     if (isYesterday(date)) return 'Yesterday';
@@ -81,19 +77,16 @@ function WaterHistoryList({ history = [], onDeleteLog, deletingLogId = null, isL
 
   return (
     <div className="bg-white rounded-lg shadow-md p-6">
-      {/* Header */}
       <div className="flex items-center justify-between mb-6">
-        <h3 className="text-lg font-semibold text-gray-800">📊 Hydration History</h3>
+        <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2"><BarChart3 size={18} /> Hydration History</h3>
         <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-semibold">
           {history.length} log{history.length !== 1 ? 's' : ''}
         </span>
       </div>
 
-      {/* Grouped Logs */}
       <div className="space-y-6">
         {sortedGroups.map(({ date, logs, totalMl }) => (
           <div key={format(date, 'yyyy-MM-dd')}>
-            {/* Date Header */}
             <div className="flex items-center justify-between mb-3 pb-2 border-b border-gray-200">
               <h4 className="font-semibold text-gray-900">
                 {getDateLabel(date)}
@@ -104,7 +97,6 @@ function WaterHistoryList({ history = [], onDeleteLog, deletingLogId = null, isL
               </div>
             </div>
 
-            {/* Logs for this date */}
             <div className="space-y-2">
               {logs.map((log) => (
                 <WaterLogItem
@@ -119,7 +111,6 @@ function WaterHistoryList({ history = [], onDeleteLog, deletingLogId = null, isL
         ))}
       </div>
 
-      {/* Summary Footer */}
       {history.length > 0 && (
         <div className="mt-6 pt-4 border-t border-gray-200">
           <div className="flex items-center justify-between text-sm">

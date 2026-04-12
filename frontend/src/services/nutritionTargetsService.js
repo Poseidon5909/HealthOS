@@ -37,7 +37,7 @@ export const calculateDailyTargets = async () => {
 
 export const getTodayDailyTargets = async () => {
   try {
-    const response = await api.get('/daily-targets/today');
+    const response = await api.get('/daily-target/today');
     return response.data;
   } catch (error) {
     if (isNotFound(error)) {
@@ -49,12 +49,12 @@ export const getTodayDailyTargets = async () => {
 };
 
 export const generateTodayDailyTargets = async () => {
-  const response = await api.post('/daily-targets/today');
+  const response = await api.post('/daily-target/today');
   return response.data;
 };
 
 export const updateDailyTargets = async (targetData, targetDate) => {
-  const response = await api.put('/daily-targets/', targetData, {
+  const response = await api.put('/daily-target/', targetData, {
     params: {
       target_date: targetDate,
     },

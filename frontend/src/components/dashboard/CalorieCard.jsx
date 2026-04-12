@@ -1,6 +1,7 @@
-import { memo } from 'react';
+﻿import { memo } from 'react';
 import { motion } from 'framer-motion';
 import { Card } from '../ui';
+import { ICON_EMOJIS } from '../../constants/icons';
 
 /**
  * CalorieCard Component
@@ -16,7 +17,6 @@ import { Card } from '../ui';
  */
 
 function CalorieCard({ calories }) {
-  // Handle empty data
   if (!calories) {
     return (
       <Card hoverable>
@@ -28,23 +28,19 @@ function CalorieCard({ calories }) {
 
   const { target = 0, consumed = 0, remaining = 0 } = calories;
   
-  // Calculate progress percentage
   const progressPercentage = target > 0 ? Math.min((consumed / target) * 100, 100) : 0;
   
-  // Determine color based on remaining calories
   const isOverTarget = remaining < 0;
   const remainingColor = isOverTarget ? 'text-red-600' : 'text-green-600';
   const progressBarColor = isOverTarget ? 'bg-red-500' : 'bg-indigo-600';
 
   return (
     <Card hoverable>
-      {/* Header */}
       <div className="mb-4 flex items-center justify-between">
         <h3 className="text-lg font-semibold text-gray-800">Calorie Balance</h3>
-        <span className="rounded-full bg-orange-100 px-2 py-1 text-xs font-semibold text-orange-700">🔥 Daily</span>
+        <span className="rounded-full bg-orange-100 px-2 py-1 text-xs font-semibold text-orange-700">{ICON_EMOJIS.calories} Daily</span>
       </div>
       
-      {/* Main Stats */}
       <div className="space-y-3 mb-4">
         <div className="flex justify-between items-center">
           <span className="text-sm text-gray-600">Consumed</span>
@@ -64,7 +60,6 @@ function CalorieCard({ calories }) {
         </div>
       </div>
       
-      {/* Progress Bar */}
       <div className="mt-4">
         <div
           className="w-full bg-gray-200 rounded-full h-3"

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 
 /**
  * WeightLogForm Component
@@ -18,13 +18,10 @@ import { useState } from 'react';
  */
 
 function WeightLogForm({ onSubmit, isLogging = false }) {
-  console.log('📝 WeightLogForm props:', { onSubmit: !!onSubmit, isLogging });
-  
   const [weight, setWeight] = useState('');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [error, setError] = useState('');
 
-  // Validate weight input
   const validateWeight = (value) => {
     const numValue = parseFloat(value);
     
@@ -40,29 +37,24 @@ function WeightLogForm({ onSubmit, isLogging = false }) {
     return '';
   };
 
-  // Handle weight input change
   const handleWeightChange = (e) => {
     const value = e.target.value;
     setWeight(value);
     
-    // Clear error when user starts typing
     if (error) {
       setError('');
     }
   };
 
-  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Validate before submitting
     const validationError = validateWeight(weight);
     if (validationError) {
       setError(validationError);
       return;
     }
 
-    // Prepare data
     const weightData = {
       weight: parseFloat(weight),
       date: date
@@ -71,7 +63,6 @@ function WeightLogForm({ onSubmit, isLogging = false }) {
     try {
       await onSubmit(weightData);
       
-      // Clear form on success
       setWeight('');
       setDate(new Date().toISOString().split('T')[0]);
       setError('');
@@ -82,17 +73,14 @@ function WeightLogForm({ onSubmit, isLogging = false }) {
 
   return (
     <div className="bg-white rounded-lg shadow-md p-6">
-      {/* Header */}
       <h3 className="text-lg font-semibold text-gray-800 mb-4">
-        📝 Log Weight
+        Log Weight
       </h3>
       <p className="text-sm text-gray-600 mb-6">
         Track your weight progress by logging regular entries
       </p>
 
-      {/* Form */}
       <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Weight Input */}
         <div>
           <label htmlFor="weight" className="block text-sm font-medium text-gray-700 mb-2">
             Weight (kg) *
@@ -118,7 +106,6 @@ function WeightLogForm({ onSubmit, isLogging = false }) {
           </p>
         </div>
 
-        {/* Date Input */}
         <div>
           <label htmlFor="date" className="block text-sm font-medium text-gray-700 mb-2">
             Date
@@ -137,7 +124,6 @@ function WeightLogForm({ onSubmit, isLogging = false }) {
           </p>
         </div>
 
-        {/* Error Message */}
         {error && (
           <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
             <p className="text-sm text-red-800 flex items-center">
@@ -149,7 +135,6 @@ function WeightLogForm({ onSubmit, isLogging = false }) {
           </div>
         )}
 
-        {/* Submit Button */}
         <button
           type="submit"
           disabled={isLogging || !weight}
@@ -171,13 +156,12 @@ function WeightLogForm({ onSubmit, isLogging = false }) {
         </button>
       </form>
 
-      {/* Tips */}
       <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-        <p className="text-sm text-blue-800 font-medium mb-2">💡 Best Practices:</p>
+        <p className="text-sm text-blue-800 font-medium mb-2">Best Practices:</p>
         <ul className="text-xs text-blue-700 space-y-1">
-          <li>• Weigh yourself at the same time each day (preferably morning)</li>
-          <li>• Use the same scale for consistency</li>
-          <li>• Track weekly trends, not daily fluctuations</li>
+          <li>- Weigh yourself at the same time each day (preferably morning)</li>
+          <li>- Use the same scale for consistency</li>
+          <li>- Track weekly trends, not daily fluctuations</li>
         </ul>
       </div>
     </div>

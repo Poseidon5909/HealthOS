@@ -1,4 +1,6 @@
-import React from 'react';
+﻿import React from 'react';
+import { Flame, Sparkles } from 'lucide-react';
+import { normalizeEmojiText } from '../../constants/icons';
 
 /**
  * HabitStreakCard Component (Day 12)
@@ -17,7 +19,7 @@ import React from 'react';
  * 2. **Loss Aversion** - Fear of "breaking the streak" motivates continuation
  * 3. **Visual Progress** - Easy to see improvement over time
  * 4. **Social Proof** - Can share achievements with others
- * 5. **Habit Loop** - Streak → Dopamine → Reinforcement → Repeat
+ * 5. **Habit Loop** - Streak -> Dopamine -> Reinforcement -> Repeat
  * 
  * Why streaks work:
  * Research shows that visible progress indicators increase
@@ -39,6 +41,7 @@ function HabitStreakCard({
   isLoading = false,
   color = 'blue'
 }) {
+  const displayIcon = normalizeEmojiText(icon);
 
   /**
    * Determine visual styling based on streak length
@@ -47,9 +50,9 @@ function HabitStreakCard({
   const getStreakLevel = () => {
     if (streak === 0) return { level: 'none', text: 'Start your streak!', bgColor: 'bg-gray-100', textColor: 'text-gray-700', borderColor: 'border-gray-300' };
     if (streak < 7) return { level: 'building', text: 'Building momentum', bgColor: 'bg-blue-50', textColor: 'text-blue-700', borderColor: 'border-blue-300' };
-    if (streak < 14) return { level: 'week', text: '🎉 One week streak!', bgColor: 'bg-green-50', textColor: 'text-green-700', borderColor: 'border-green-300' };
-    if (streak < 30) return { level: 'habit', text: '💪 Habit forming!', bgColor: 'bg-purple-50', textColor: 'text-purple-700', borderColor: 'border-purple-300' };
-    return { level: 'master', text: '🏆 Master level!', bgColor: 'bg-yellow-50', textColor: 'text-yellow-700', borderColor: 'border-yellow-400' };
+    if (streak < 14) return { level: 'week', text: 'One week streak!', bgColor: 'bg-green-50', textColor: 'text-green-700', borderColor: 'border-green-300' };
+    if (streak < 30) return { level: 'habit', text: 'Habit forming!', bgColor: 'bg-purple-50', textColor: 'text-purple-700', borderColor: 'border-purple-300' };
+    return { level: 'master', text: 'Master level!', bgColor: 'bg-yellow-50', textColor: 'text-yellow-700', borderColor: 'border-yellow-400' };
   };
 
   const streakLevel = getStreakLevel();
@@ -59,11 +62,18 @@ function HabitStreakCard({
    * Visual metaphor: Bigger fire = hotter streak!
    */
   const getFlameEmoji = () => {
-    if (streak === 0) return '⚪';
-    if (streak < 7) return '🔥';
-    if (streak < 14) return '🔥🔥';
-    if (streak < 30) return '🔥🔥🔥';
-    return '🔥🔥🔥✨'; // Master level gets sparkles!
+    if (streak === 0) {
+      return <span className="text-gray-400">-</span>;
+    }
+    if (streak < 30) {
+      return <Flame size={22} className="text-orange-500" />;
+    }
+    return (
+      <span className="inline-flex items-center gap-1">
+        <Flame size={22} className="text-orange-500" />
+        <Sparkles size={18} className="text-yellow-400" />
+      </span>
+    );
   };
 
   if (isLoading) {
@@ -86,16 +96,14 @@ function HabitStreakCard({
         ${streakLevel.bgColor} ${streakLevel.borderColor}
       `}
     >
-      {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <span className="text-2xl">{icon}</span>
+          <span className="text-2xl">{displayIcon}</span>
           <h3 className="text-base font-semibold text-gray-900">{title}</h3>
         </div>
         <span className="text-2xl">{getFlameEmoji()}</span>
       </div>
 
-      {/* Streak Number - Big and bold */}
       <div className="mb-2">
         <div className={`text-5xl font-bold ${streakLevel.textColor} leading-none`}>
           {streak}
@@ -105,12 +113,10 @@ function HabitStreakCard({
         </div>
       </div>
 
-      {/* Achievement text */}
       <div className={`text-sm font-medium ${streakLevel.textColor}`}>
         {streakLevel.text}
       </div>
 
-      {/* Visual progress bar for next milestone */}
       {streak > 0 && streak < 30 && (
         <div className="mt-4">
           <div className="flex justify-between text-xs text-gray-600 mb-1">
@@ -140,10 +146,9 @@ function HabitStreakCard({
         </div>
       )}
 
-      {/* Master level badge */}
       {streak >= 30 && (
-        <div className="mt-4 bg-gradient-to-r from-yellow-400 to-orange-400 text-white text-center py-2 px-4 rounded-lg font-bold text-sm shadow-md">
-          🌟 MASTER STATUS ACHIEVED 🌟
+        <div className="mt-4 bg-gradient-to-r from-yellow-400 to-orange-400 text-white text-center py-2 px-4 rounded-lg font-bold text-sm shadow-md inline-flex items-center justify-center gap-2 w-full">
+          <Sparkles size={16} /> MASTER STATUS ACHIEVED <Sparkles size={16} />
         </div>
       )}
     </div>
