@@ -44,9 +44,21 @@ def create_user(request: Request, user: UserCreate, db: Session = Depends(get_db
     db.add(new_user)
     try:
         db.commit()
-    except IntegrityError:
+    except IntegrityError as exc:
         db.rollback()
-        raise HTTPException(status_code=400, detail="Email already registered")
+        error_text = str(getattr(exc, "orig", exc)).lower()
+        logger.error("User registration integrity error: %s", error_text)
+
+        if "users_email_key" in error_text or ("email" in error_text and "unique" in error_text):
+            raise HTTPException(status_code=400, detail="Email already registered")
+
+        if "users_pkey" in error_text or ("id" in error_text and "duplicate key" in error_text):
+            raise HTTPException(
+                status_code=500,
+                detail="Database sequence is out of sync. Please contact support."
+            )
+
+        raise HTTPException(status_code=400, detail="Registration failed due to a database constraint")
 
     db.refresh(new_user)
     
