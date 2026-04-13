@@ -8,6 +8,7 @@ class Settings(BaseSettings):
   APP_NAME: str
   DATABASE_URL: str
   DEBUG: bool = False
+  SEED_ON_STARTUP: bool = False
   SECRET_KEY: str
   ALGORITHM: str
   ACCESS_TOKEN_EXPIRE_MINUTES: int
