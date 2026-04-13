@@ -94,7 +94,9 @@ function Register() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!isValidEmail(formData.email)) {
+    const normalizedEmail = formData.email.trim().toLowerCase();
+
+    if (!isValidEmail(normalizedEmail)) {
       setError('Please enter a valid email');
       return;
     }
@@ -116,13 +118,13 @@ function Register() {
     try {
       await authService.register({
         name: formData.name.trim(),
-        email: formData.email.trim(),
+        email: normalizedEmail,
         password: formData.password,
       });
 
       // Create an initial nutrition profile so downstream pages
       // (daily targets, workouts, nutrition calculations) don't fail.
-      const authTokens = await authService.login(formData.email.trim(), formData.password);
+      const authTokens = await authService.login(normalizedEmail, formData.password);
       
       localStorage.setItem('accessToken', authTokens.access_token);
       localStorage.setItem('refreshToken', authTokens.refresh_token);

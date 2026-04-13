@@ -1,5 +1,6 @@
 import logging
 from fastapi import APIRouter, Depends, HTTPException, Request
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 from slowapi import Limiter
 from slowapi.util import get_remote_address
@@ -29,13 +30,14 @@ def create_user(request: Request, user: UserCreate, db: Session = Depends(get_db
     
     Rate limit: 3 registrations per hour per IP address.
     """
-    existing_user = db.query(User).filter(User.email == user.email).first()
+    normalized_email = user.email.strip().lower()
+    existing_user = db.query(User).filter(func.lower(User.email) == normalized_email).first()
     if existing_user:
         raise HTTPException(status_code=400, detail="Email already registered")
 
     new_user = User(
         name=user.name,
-        email=user.email,
+        email=normalized_email,
         password_hash=hash_password(user.password),
         is_active=True,
         email_verified=False,

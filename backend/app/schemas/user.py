@@ -7,6 +7,10 @@ class UserCreate(BaseModel):
   name: str = Field(..., min_length=1, max_length=100, description="User's full name")
   email: EmailStr
   password: str = Field(..., min_length=8, max_length=100, description="Password (min 8 characters)")
+
+  @validator('email')
+  def normalize_email(cls, v):
+    return str(v).strip().lower()
   
   @validator('name')
   def validate_name(cls, v):
@@ -47,6 +51,10 @@ class PasswordChange(BaseModel):
 class UserUpdate(BaseModel):
   name: Optional[str] = Field(None, min_length=1, max_length=100)
   email: Optional[EmailStr] = None
+
+  @validator('email')
+  def normalize_email(cls, v):
+    return str(v).strip().lower() if v is not None else v
   
   @validator('name')
   def validate_name(cls, v):
