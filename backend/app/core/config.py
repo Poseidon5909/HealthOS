@@ -1,6 +1,7 @@
 from pydantic_settings import BaseSettings
 from pydantic import field_validator
 from pathlib import Path
+import json
 
 BACKEND_DIR = Path(__file__).resolve().parents[2]
 
@@ -15,7 +16,7 @@ class Settings(BaseSettings):
   REFRESH_TOKEN_EXPIRE_DAYS: int = 7
   
   # CORS settings
-  CORS_ORIGINS: list = [
+  CORS_ORIGINS: list[str] = [
     "http://localhost:3000",
     "http://localhost:3001",
     "http://localhost:3002",
@@ -48,6 +49,24 @@ class Settings(BaseSettings):
       relative_db_path = value.removeprefix("sqlite:///./")
       absolute_db_path = (BACKEND_DIR / relative_db_path).resolve()
       return f"sqlite:///{absolute_db_path.as_posix()}"
+    return value
+
+  @field_validator("CORS_ORIGINS", mode="before")
+  @classmethod
+  def parse_cors_origins(cls, value):
+    # Accept JSON array, comma-separated string, or list.
+    if isinstance(value, str):
+      parsed = None
+      try:
+        parsed = json.loads(value)
+      except json.JSONDecodeError:
+        parsed = [origin.strip() for origin in value.split(",") if origin.strip()]
+      value = parsed
+
+    if isinstance(value, list):
+      normalized = [str(origin).rstrip("/") for origin in value if str(origin).strip()]
+      return normalized
+
     return value
 
   class Config:
