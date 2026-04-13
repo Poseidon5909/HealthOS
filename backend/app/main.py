@@ -144,13 +144,26 @@ from app.models import user  # Import to register model
 from app.services.food_service import FoodService
 from app.seeds.exercise_seed import seed_exercises
 from app.seeds.serving_size_seed import seed_serving_sizes
+import logging
+
+logger = logging.getLogger(__name__)
 
 
-Base.metadata.create_all(bind=engine)
+@app.on_event("startup")
+def initialize_database_and_seeds():
+    """Initialize tables and seed data without crashing the whole service."""
+    try:
+        Base.metadata.create_all(bind=engine)
 
-# Seed initial data
-db = next(get_db())
-FoodService.seed_initial_data(db)
-seed_exercises(db)
-seed_serving_sizes(db)
-db.close()
+        db = next(get_db())
+        try:
+            FoodService.seed_initial_data(db)
+            seed_exercises(db)
+            seed_serving_sizes(db)
+        finally:
+            db.close()
+
+        logger.info("Startup database initialization completed")
+    except Exception:
+        # Keep API process alive; endpoints will still surface DB issues explicitly.
+        logger.exception("Startup database initialization failed")
