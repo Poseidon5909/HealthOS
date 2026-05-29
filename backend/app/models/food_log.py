@@ -25,6 +25,10 @@ class FoodLog(Base):
 
   user = relationship("User", back_populates="food_logs")
   food = relationship("FoodItem", back_populates="food_logs")
+
+  @property
+  def food_name(self):
+    return self.food.name if self.food else None
   
   __table_args__ = (
     UniqueConstraint('user_id', 'food_id', 'created_at', name='uq_food_user_food_time'),

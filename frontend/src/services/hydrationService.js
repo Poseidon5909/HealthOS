@@ -38,10 +38,13 @@ export const logWater = async (waterData) => {
  * @returns {Promise} Daily hydration summary
  */
 export const getDailyHydration = async (date = null) => {
-  const targetDate = date || new Date().toISOString().split('T')[0];
-  
+  if (!date) {
+    const response = await api.get('/hydration/daily');
+    return response.data;
+  }
+
   const response = await api.get('/hydration/daily', {
-    params: { log_date: targetDate }
+    params: { log_date: date }
   });
   return response.data;
 };

@@ -32,6 +32,26 @@ export const searchFoods = async (query, page = 1, pageSize = 20) => {
   return response.data;
 };
 
+const normalizeFoodLog = (log) => ({
+  ...log,
+  food_name: log.food_name
+    ?? log.food_item?.name
+    ?? log.food?.name
+    ?? (log.food_id ? `Food #${log.food_id}` : 'Food'),
+  calories: log.calories ?? log.calculated_calories ?? 0,
+  protein: log.protein ?? log.calculated_protein ?? 0,
+  carbs: log.carbs ?? log.calculated_carbs ?? 0,
+  fat: log.fat ?? log.calculated_fat ?? 0,
+});
+
+const normalizeMealSummary = (summary = {}) => ({
+  total_calories: summary.total_calories ?? summary.calories ?? 0,
+  total_protein: summary.total_protein ?? summary.protein ?? 0,
+  total_carbs: summary.total_carbs ?? summary.carbs ?? 0,
+  total_fat: summary.total_fat ?? summary.fat ?? 0,
+  count: summary.count ?? summary.items_count ?? 0,
+});
+
 /**
  * Get today's food logs (all meals)
  * 
@@ -48,7 +68,8 @@ export const getTodayFoodLogs = async () => {
     },
   });
 
-  return response.data?.items || [];
+  const items = response.data?.items || [];
+  return items.map(normalizeFoodLog);
 };
 
 /**
@@ -62,7 +83,7 @@ export const getTodayFoodLogs = async () => {
  */
 export const logFood = async (foodLogData) => {
   const response = await api.post('/food-log/', foodLogData);
-  return response.data;
+  return normalizeFoodLog(response.data);
 };
 
 /**
@@ -74,7 +95,7 @@ export const logFood = async (foodLogData) => {
  */
 export const updateFoodLog = async (logId, updateData) => {
   const response = await api.put(`/food-log/${logId}`, updateData);
-  return response.data;
+  return normalizeFoodLog(response.data);
 };
 
 /**
@@ -97,7 +118,14 @@ export const deleteFoodLog = async (logId) => {
  */
 export const getTodayMealSummary = async () => {
   const response = await api.get('/food-log/meals/summary/today');
-  return response.data;
+  const meals = response.data?.meals || response.data || {};
+
+  return {
+    breakfast: normalizeMealSummary(meals.breakfast),
+    lunch: normalizeMealSummary(meals.lunch),
+    dinner: normalizeMealSummary(meals.dinner),
+    snack: normalizeMealSummary(meals.snack),
+  };
 };
 
 /**

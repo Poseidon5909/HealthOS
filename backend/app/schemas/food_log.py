@@ -59,6 +59,7 @@ class FoodLogUpdate(BaseModel):
 class FoodLogResponse(BaseModel):
   id: int
   food_id: int
+  food_name: Optional[str] = None
   quantity_grams: float
   meal_type: Optional[str] = None
   calculated_calories: float
